@@ -64,17 +64,57 @@ documentation, and recovery come before convenience features.
 - Preserve and publish verifiable release-candidate hashes without adding
   credentials, proprietary firmware, or user-specific device files.
 
-## Medium-term goals
+## Next planned improvements
 
-- Add automated installation preflight and compatibility checks.
-- Document device-specific assumptions, such as framebuffer size, input devices, audio routing, and backlight behavior.
+### Library and navigation polish
+
+- Add a compact page or position indicator for long Liked Songs, playlist,
+  Search, and Up Next lists.
+- Review return paths and per-view browsing position so moving through Search,
+  playlists, Now Playing, and the library preserves useful context.
+- Make the difference between the active playback queue and the currently
+  browsed source clearer without shrinking touch targets.
+
+### Diagnostics and recovery clarity
+
+- Distinguish network, Spotify-session, daemon-restart, and audio-output
+  recovery states more clearly in Diagnostics and logs.
+- Record concise, privacy-safe troubleshooting steps that users can include in
+  issue reports without exposing account or network credentials.
+- Continue targeted recovery tests when a real, reproducible failure is found,
+  while preserving the current simple supervised design.
+
+### Installation and release safety
+
+- Add host and device preflight checks for model, storage, expected files,
+  binary architecture, and rollback readiness.
+- Define a compatibility matrix as additional firmware revisions or devices
+  are tested by owners.
+- Explore a patch-only workflow based on a user-supplied stock image, without
+  redistributing proprietary firmware.
+
+### Platform integration research
+
+- Profile the HiBy_OS handoff and investigate a faster path from tapping the
+  launcher tile to seeing SpotUI, without bypassing the codec and mixer
+  readiness checks that protect headphone audio.
+- Investigate deeper stock-side launch feedback or integration that remains
+  responsive while the safe handoff is pending.
+- Design and validate a fully dedicated SpotUI launcher icon and identity in
+  place of the current Qobuz-derived SpotUI integration.
+- Evaluate Bluetooth audio-output support, including pairing assumptions,
+  routing, reconnection, status reporting, and playback behavior.
+- Investigate whether HiBy MSEB tuning can be exposed safely inside SpotUI,
+  including control discovery, persistent settings, output compatibility, and
+  coexistence with the stock player's audio configuration.
 
 ## Possible future goals
 
 - Support additional HiBy models if tested by device owners.
 - Improve UI polish while keeping the interface readable and touch-friendly.
 - Continue strengthening recovery behavior for reproducible backend failures.
-- Explore a cleaner patch-only installation workflow.
+- Evaluate optional album artwork only if a bounded prototype meets the
+  device's memory, network, and framebuffer-performance limits.
 - Consider optional bring-your-own-client-ID OAuth support for library writes,
   without making it a standard installation requirement.
 

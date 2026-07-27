@@ -64,7 +64,7 @@ The public repository does not provide:
 - a complete MIPS cross-toolchain;
 - Spotify credentials, tokens, or cache files;
 - WiFi credentials;
-- a guided authentication wizard;
+- a prebuilt desktop authentication-helper binary;
 - a one-command installation or uninstall process.
 
 The guarded firmware builder packages and verifies an **already prepared** private firmware tree. It does not download stock firmware, extract it, or apply every proprietary binary modification automatically.
@@ -84,7 +84,9 @@ Before beginning, confirm that you have:
 - a local librespot source tree compatible with the SpotUI daemon;
 - the required firmware build tools listed in [Verified firmware build workflow](firmware-build.md);
 - enough local storage for private extracted firmware trees and backups;
-- a Spotify Premium account and a locally prepared librespot credential cache;
+- a Spotify Premium account;
+- the desktop authentication helper built from source or obtained as a matched
+  release artifact;
 - working WiFi configuration on the device.
 
 Stop here if any recovery or model-specific requirement is uncertain.
@@ -118,7 +120,11 @@ Do not proceed with binaries that fail the target or hash checks.
 
 ## Step 2: prepare authentication and device configuration
 
-The current daemon expects a user-prepared librespot credential cache on the persistent device partition. Credentials are not stored in this repository.
+The daemon expects a reusable librespot credential cache on the persistent
+device partition. Credentials are never stored in this repository or in the
+firmware/runtime package. Use the tested desktop workflow in
+[Spotify credential onboarding](credential-onboarding.md) to authorize in a
+browser and install the private cache atomically over ADB.
 
 The device must also have:
 
@@ -128,7 +134,10 @@ The device must also have:
 - the tested loader and launcher files;
 - the required audio and framebuffer environment.
 
-Authentication setup is not yet a polished public workflow. Treat it as a development prerequisite rather than an installation step that the repository automates.
+Keep SpotUI closed at the stock HiBy interface while onboarding. The helper
+refuses an active SpotUI/audio stack, retains one private device rollback copy,
+and removes its temporary host credential after installation. Complete the
+post-install playback and reboot test before treating authentication as stable.
 
 ## Step 3: choose the deployment path
 
@@ -259,7 +268,8 @@ The developer beta currently has these installation limitations:
 - no ready-to-flash public image is provided;
 - no automated stock-firmware extraction workflow is included;
 - no public preflight utility checks the device model and firmware revision;
-- no guided Spotify authentication flow is included;
+- the authentication helper has currently been validated only on x86-64 Linux
+  and still requires a browser, USB, and manually enabled ADB;
 - Like/unlike library writes are unavailable because they require a separate
   Spotify Web API OAuth authorization;
 - screen sleep supports persistent 30-second, 60-second, 2-minute, 5-minute,
@@ -301,7 +311,8 @@ Before installation can be generalized beyond this developer beta, add:
 
 - a reproducible preparation or patch-only workflow from a user-supplied stock image;
 - automated host and device preflight checks;
-- clearer authentication setup;
+- prebuilt, versioned authentication-helper artifacts for each supported host
+  platform;
 - reproducible versioned patches or artifacts that contain no proprietary
   firmware;
 - an explicit compatibility matrix;

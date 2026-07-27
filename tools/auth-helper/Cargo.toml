@@ -1,0 +1,17 @@
+[package]
+name = "spotui-auth-helper"
+version = "0.1.0-beta.1"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+publish = false
+
+[dependencies]
+librespot-core = { version = "=0.8.0", default-features = false, features = ["rustls-tls-webpki-roots"] }
+librespot-oauth = { version = "=0.8.0", default-features = false, features = ["rustls-tls-webpki-roots"] }
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[profile.release]
+lto = true
+strip = true
+panic = "abort"

@@ -101,7 +101,7 @@ This source repository does not include firmware images, ready-to-flash builds, 
 - A working ADB connection.
 - A local MIPS cross-build environment for `mipsel-unknown-linux-musl`.
 - A user-supplied WiFi configuration on the device.
-- A user-supplied Spotify Premium account configured locally on the device.
+- A Spotify Premium account authorized with the desktop onboarding helper.
 - The HiBy backlight setting should be configured so the panel remains available during startup.
 
 ## Spotify note
@@ -122,6 +122,7 @@ This is an independent community research/modding project. It is provided withou
 
 - [0.1.0-beta.1 release notes](docs/releases/0.1.0-beta.1.md)
 - [Beta testing guide](docs/testing.md)
+- [Spotify credential onboarding](docs/credential-onboarding.md)
 - [Contribution guidelines](CONTRIBUTING.md)
 - [Developer beta installation](docs/developer-install.md)
 - [Build and deploy SpotUI](docs/build.md)

@@ -169,13 +169,16 @@ it. The builder now fixes the archive to the device-tested low-memory profile.
 
 ## Authentication boundary
 
-The image intentionally contains no account data. A new tester must enable ADB
-from the stock HMOD interface and install a credential cache generated through
-librespot's OAuth flow before launching SpotUI.
+The image intentionally contains no account data. A new tester enables ADB
+from the stock HMOD interface and runs the separately built desktop OAuth
+helper before launching SpotUI. The tested helper creates the reusable
+librespot credential in a private temporary directory, stages and verifies it
+over ADB, preserves one device-local rollback copy, and removes the temporary
+host copy. See [Spotify credential onboarding](credential-onboarding.md).
 
-The public credential helper is a separate installer milestone. Until it is
-implemented and tested, this prototype is suitable only for the maintainer's
-existing authenticated device.
+Authentication onboarding passed its complete device test on 2026-07-27. It
+does not make the firmware or runtime archive account-specific, configure
+WiFi, or enable ADB permanently.
 
 ## Controlled device-test sequence
 

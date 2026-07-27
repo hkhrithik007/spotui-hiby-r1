@@ -51,6 +51,11 @@ documentation, and recovery come before convenience features.
 - Expanded recovery, rollback, and common failure troubleshooting procedures.
 - Added a developer beta installation guide with prerequisites, validation,
   limitations, and rollback guidance.
+- Added and device-tested a guarded two-file HMOD v1.5 installer builder with
+  low-memory runtime extraction, exact-input validation, and safe repeat-boot
+  behavior.
+- Added and device-tested private desktop OAuth onboarding with atomic ADB
+  credential installation, strict permissions, and device-local rollback.
 - Completed a full release-candidate regression covering all playback sources,
   rapid selection, automatic advancement, controls, search recovery,
   sleep/wake, headphone reconnection, UI-only restart, full reboot, settings

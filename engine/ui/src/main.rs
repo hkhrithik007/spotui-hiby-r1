@@ -1307,6 +1307,8 @@ const DIAGNOSTICS_LABELS: [&str; 6] = [
     "Queue",
     "Refresh Status",
 ];
+const SPOTUI_VERSION_LABEL: &str =
+    concat!("Version ", env!("CARGO_PKG_VERSION"));
 
 const SETTINGS_LABELS: [&str; 6] = [
     "Sleep: 30 sec",
@@ -3324,12 +3326,33 @@ fn draw_list(
 
             Text::with_baseline(
                 &display_label,
-                Point::new(label_x, tile_y + 82),
+                Point::new(
+                    label_x,
+                    if app_view == AppView::Diagnostics && index == 5 {
+                        tile_y + 64
+                    } else {
+                        tile_y + 82
+                    },
+                ),
                 menu_style,
                 Baseline::Top,
             )
             .draw(fb)
             .ok();
+
+            if app_view == AppView::Diagnostics && index == 5 {
+                let version_width =
+                    SPOTUI_VERSION_LABEL.chars().count() as i32 * 9;
+                let version_x = tile_x + (240 - version_width) / 2;
+                Text::with_baseline(
+                    SPOTUI_VERSION_LABEL,
+                    Point::new(version_x, tile_y + 104),
+                    MonoTextStyle::new(&FONT_9X15, palette.text),
+                    Baseline::Top,
+                )
+                .draw(fb)
+                .ok();
+            }
         }
 
         Rectangle::new(Point::new(0, 40), Size::new(1, 540))

@@ -1,0 +1,213 @@
+#!/bin/sh
+# Validate or install the SpotUI runtime without delaying the stock player.
+# The runtime archive is supplied separately on the SD card.
+
+INSTALLER=${SPOTUI_INSTALLER_DIR:-/usr/share/spotui-installer}
+SD_ROOT=${SPOTUI_SD_ROOT:-/usr/data/mnt/sd_0}
+DEST=${SPOTUI_DEST:-/usr/data}
+ARCHIVE=$SD_ROOT/spotui-runtime.tar.xz
+ARCHIVE_SHA_FILE=$INSTALLER/spotui-runtime.tar.xz.sha256
+MANIFEST=$INSTALLER/SHA256SUMS
+PAYLOAD_BYTES_FILE=$INSTALLER/PAYLOAD_BYTES
+VERSION_FILE=$INSTALLER/VERSION
+STAGE=$DEST/.spotui-install-stage
+LOG=${SPOTUI_PROVISION_LOG:-/tmp/spotui-provision.log}
+LOCK=${SPOTUI_PROVISION_LOCK:-/tmp/spotui-provision.lock}
+WAIT_SECONDS=${SPOTUI_PROVISION_WAIT_SECONDS:-60}
+
+FILES="spotui-ui-poc spotui_daemon ld-musl-mipsel-sf.so.1 start_spotui.sh start_spotui.real.sh return_to_hiby.sh"
+
+log() {
+    echo "[provision] $*" >> "$LOG"
+}
+
+hash_for() {
+    awk -v name="$1" '$2 == name { print $1 }' "$MANIFEST"
+}
+
+hash_matches() {
+    expected=$(hash_for "$1")
+    [ -n "$expected" ] || return 1
+    [ -f "$2" ] || return 1
+    actual=$(sha256sum "$2" | awk '{ print $1 }')
+    [ "$actual" = "$expected" ]
+}
+
+ensure_runtime_permissions() {
+    chmod 755 \
+        "$DEST/spotui-ui-poc" \
+        "$DEST/spotui_daemon" \
+        "$DEST/start_spotui.sh" \
+        "$DEST/start_spotui.real.sh" \
+        "$DEST/return_to_hiby.sh" \
+        2>/dev/null || return 1
+    chmod 555 "$DEST/ld-musl-mipsel-sf.so.1" 2>/dev/null || return 1
+    mkdir -p "$DEST/librespot-cache" "$DEST/tmp" || return 1
+    chmod 700 "$DEST/librespot-cache" || return 1
+}
+
+case "$1" in
+    start)
+        # rcS must never wait for payload hashing, SD I/O, or extraction.
+        nice -n 10 "$0" worker </dev/null >/dev/null 2>&1 &
+        exit 0
+        ;;
+    worker)
+        ;;
+    stop|restart|reload)
+        exit 0
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+        ;;
+esac
+
+if ! mkdir "$LOCK" 2>/dev/null; then
+    exit 0
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' 0 1 2 15
+
+: > "$LOG"
+log "background validation started"
+
+for required in \
+    "$ARCHIVE_SHA_FILE" \
+    "$MANIFEST" \
+    "$PAYLOAD_BYTES_FILE" \
+    "$VERSION_FILE"
+do
+    if [ ! -f "$required" ]; then
+        log "missing firmware installer file: $required"
+        exit 1
+    fi
+done
+
+all_present=1
+for file in $FILES; do
+    if [ ! -f "$DEST/$file" ]; then
+        all_present=0
+    fi
+done
+
+if [ "$all_present" -eq 1 ] &&
+   [ -f "$DEST/spotui-runtime-version" ] &&
+   [ -f "$DEST/spotui-runtime-SHA256SUMS" ] &&
+   cmp -s "$VERSION_FILE" "$DEST/spotui-runtime-version" &&
+   cmp -s "$MANIFEST" "$DEST/spotui-runtime-SHA256SUMS"; then
+    if ! ensure_runtime_permissions; then
+        log "could not enforce runtime permissions"
+        exit 1
+    fi
+    log "installed runtime metadata already matches packaged version"
+    exit 0
+fi
+
+any_present=0
+all_match=1
+for file in $FILES; do
+    if [ -e "$DEST/$file" ]; then
+        any_present=1
+    fi
+    if ! hash_matches "$file" "$DEST/$file"; then
+        all_match=0
+    fi
+done
+
+if [ "$all_match" -eq 1 ]; then
+    if ! ensure_runtime_permissions; then
+        log "could not enforce runtime permissions"
+        exit 1
+    fi
+    if ! cp "$VERSION_FILE" "$DEST/spotui-runtime-version" ||
+       ! cp "$MANIFEST" "$DEST/spotui-runtime-SHA256SUMS"; then
+        log "could not refresh runtime metadata"
+        exit 1
+    fi
+    log "runtime already matches packaged version"
+    exit 0
+fi
+
+if [ "$any_present" -eq 1 ]; then
+    log "existing SpotUI runtime is incomplete or differs; refusing automatic overwrite"
+    exit 1
+fi
+
+wait_count=0
+while [ ! -f "$ARCHIVE" ] && [ "$wait_count" -lt "$WAIT_SECONDS" ]; do
+    sleep 1
+    wait_count=$((wait_count + 1))
+done
+if [ ! -f "$ARCHIVE" ]; then
+    log "runtime archive not found on SD card: $ARCHIVE"
+    exit 1
+fi
+
+expected_archive_sha=$(awk 'NR == 1 { print $1 }' "$ARCHIVE_SHA_FILE")
+actual_archive_sha=$(sha256sum "$ARCHIVE" | awk '{ print $1 }')
+if [ -z "$expected_archive_sha" ] || [ "$actual_archive_sha" != "$expected_archive_sha" ]; then
+    log "SD runtime archive hash mismatch"
+    exit 1
+fi
+
+payload_bytes=$(awk 'NR == 1 { print $1 }' "$PAYLOAD_BYTES_FILE")
+available_kb=$(df -k "$DEST" | awk 'NR == 2 { print $4 }')
+case "$payload_bytes:$available_kb" in
+    *[!0-9:]*|:*)
+        log "could not determine payload size or free space"
+        exit 1
+        ;;
+esac
+
+required_kb=$(( (payload_bytes + 1023) / 1024 + 2048 ))
+if [ "$available_kb" -lt "$required_kb" ]; then
+    log "insufficient space: need ${required_kb} KiB, have ${available_kb} KiB"
+    exit 1
+fi
+
+rm -rf "$STAGE"
+mkdir -p "$STAGE"
+
+if ! xz -dc "$ARCHIVE" | tar -xf - -C "$STAGE"; then
+    log "could not extract runtime archive"
+    rm -rf "$STAGE"
+    exit 1
+fi
+
+if ! (cd "$STAGE" && sha256sum -c SHA256SUMS >/dev/null 2>&1); then
+    log "extracted runtime hash verification failed"
+    rm -rf "$STAGE"
+    exit 1
+fi
+
+for file in $FILES; do
+    if [ ! -f "$STAGE/$file" ]; then
+        log "runtime archive is missing $file"
+        rm -rf "$STAGE"
+        exit 1
+    fi
+done
+
+for file in $FILES; do
+    if ! mv "$STAGE/$file" "$DEST/$file"; then
+        log "could not activate runtime file: $file"
+        rm -rf "$STAGE"
+        exit 1
+    fi
+done
+
+if ! cp "$VERSION_FILE" "$DEST/spotui-runtime-version" ||
+   ! cp "$MANIFEST" "$DEST/spotui-runtime-SHA256SUMS"; then
+    log "could not install runtime metadata"
+    rm -rf "$STAGE"
+    exit 1
+fi
+if ! ensure_runtime_permissions; then
+    log "could not enforce installed runtime permissions"
+    rm -rf "$STAGE"
+    exit 1
+fi
+rm -rf "$STAGE"
+
+log "installed runtime $(cat "$VERSION_FILE")"
+exit 0

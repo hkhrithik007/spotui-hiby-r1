@@ -1,6 +1,7 @@
 # Build and deploy SpotUI
 
-This document records the tested local cross-build workflow for the SpotUI interface and its librespot-based daemon on the HiBy R3 Pro II.
+This document records the tested local cross-build workflow for the SpotUI
+`0.1.0-beta.1` interface and its librespot-based daemon on the HiBy R3 Pro II.
 
 The commands below assume:
 
@@ -53,6 +54,12 @@ cargo +nightly --version
 The custom MIPS environment must also provide the linker, archiver, C runtime, and target configuration required by `mipsel-unknown-linux-musl`. Those details are currently external to this repository.
 
 ## Build the interface
+
+Confirm the intended package version before building:
+
+```fish
+rg '^version = ' ~/hiby-standalone-client-public/engine/ui/Cargo.toml
+```
 
 From the repository:
 
@@ -186,6 +193,11 @@ Keep only one compatible `.previous` UI/daemon pair on the device. If staging a
 new daemon requires space, remove an obsolete device rollback only after its
 laptop archive has been verified.
 
+Pause playback and confirm that `aplay` has exited before pulling, copying, or
+hashing device binaries. Large reads and hash calculations can compete with
+real-time audio on the R3 Pro II and produce underruns that are artifacts of
+the maintenance operation rather than normal playback.
+
 ## Deploy the interface
 
 Upload to a temporary path first:
@@ -274,11 +286,14 @@ After the device finishes booting:
 2. Confirm that the SpotUI launcher tile renders correctly.
 3. Launch SpotUI.
 4. Confirm that the interface starts.
-5. Load the track list.
-6. Start playback.
-7. Confirm that audio is produced through the expected output.
-8. Exit and relaunch SpotUI.
-9. Reboot once more and repeat the startup test.
+5. Open Diagnostics and confirm `Version 0.1.0-beta.1`.
+6. Load the track list.
+7. Start playback.
+8. Confirm that audio is produced through the expected output.
+9. Test Liked Songs, a playlist, Search, controls, and automatic advancement.
+10. Confirm sleep/wake and headphone reconnection behavior.
+11. Exit and relaunch SpotUI.
+12. Reboot once more and repeat the startup test.
 
 For a matched UI/daemon protocol change, stage and verify both `.new` files
 before rotating either active file. Activate them together and retain a
@@ -319,6 +334,17 @@ adb shell '
 ps | grep -E "spotui|aplay|librespot" | grep -v grep
 '
 ```
+
+Reading a short log tail during playback is normally lightweight. Perform full
+device-binary hashes, large pulls, and storage audits while playback is paused.
+
+## Release-candidate archive
+
+After the complete device regression passes, archive the exact active UI and
+daemon pair on the build host. Record their SHA-256 hashes, the SpotUI version,
+the source commit, the device model, and the test date. Keep credentials,
+cache files, proprietary firmware, and user-specific logs out of the public
+archive.
 
 ## Rollback
 

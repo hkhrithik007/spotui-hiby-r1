@@ -104,6 +104,25 @@ ls -l /tmp/spotui.sock 2>/dev/null
 
 If the stock interface freezes on the last framebuffer image, reboot the device. Manually launching `hiby_player` after framebuffer takeover has not been a reliable recovery method.
 
+## If a search result shows Reconnecting or Nothing Playing
+
+A Spotify session can close after the result list has been fetched but before
+the selected track obtains its audio key. The daemon exits after repeated
+unavailable-track failures so its supervisor can establish a fresh session.
+
+Starting with SpotUI `0.1.0-beta.1`, the UI invalidates visible results when
+the daemon becomes unavailable, briefly returns to the active-search screen,
+and automatically reruns the saved query after reconnection. Wait for the
+refreshed results page before tapping a track again.
+
+If the results do not refresh:
+
+1. return to Search and press `Go` again;
+2. confirm that `/tmp/spotui.sock` exists and the daemon is running;
+3. inspect `/tmp/spotui-ui.log` and `/tmp/daemon.log` for connection or audio-key
+   errors;
+4. reboot if the supervised daemon does not recover.
+
 ## If SpotUI launches but audio does not play
 
 Possible causes:
@@ -223,6 +242,10 @@ Before replacing a working build, save copies of:
 - original launcher artwork and localization files.
 
 Keep private backups outside the public repository. Do not commit device snapshots, credentials, WiFi configuration, cache files, or firmware images.
+
+Pause playback before creating or verifying large device-side backups. Hashing
+or pulling large binaries while audio is active can temporarily compete with
+the playback process on this device.
 
 ## Public issue reports
 

@@ -1,6 +1,8 @@
-# Developer preview installation
+# Developer beta installation
 
-SpotUI is currently an **early developer preview** for the HiBy R3 Pro II. It is not a one-click installer, an end-user firmware package, or a supported consumer release.
+SpotUI `0.1.0-beta.1` is a **developer beta** for the HiBy R3 Pro II. It is
+not a one-click installer, an end-user firmware package, or a supported
+consumer release.
 
 > [!WARNING]
 > Installing SpotUI currently requires cross-compiling software, modifying a private firmware tree, flashing custom firmware, and maintaining a recovery path. A mistake can make the player temporarily unbootable. Continue only if you are comfortable recovering the exact device with official stock firmware.
@@ -23,6 +25,7 @@ It is not yet suitable for someone looking for a normal application installation
 The currently tested configuration is:
 
 - **Device:** HiBy R3 Pro II
+- **SpotUI version:** `0.1.0-beta.1`
 - **Target:** `mipsel-unknown-linux-musl`
 - **Host:** Linux development environment
 - **Playback engine:** librespot-based SpotUI daemon
@@ -196,12 +199,14 @@ During the first test:
 6. launch SpotUI;
 7. confirm that the UI starts;
 8. confirm that liked songs load;
-9. start playback;
-10. verify audio through the intended output;
-11. test pause and resume;
-12. test brightness;
-13. exit SpotUI;
-14. reboot and repeat the launch and playback test.
+9. open Diagnostics and confirm `Version 0.1.0-beta.1`;
+10. start playback;
+11. verify audio through the intended output;
+12. test pause and resume;
+13. test brightness and screen sleep/wake;
+14. test a search result and a playlist track;
+15. exit SpotUI;
+16. reboot and repeat the launch and playback test.
 
 Do not assume a successful first launch proves cold-boot reliability. Reboot testing is required.
 
@@ -227,6 +232,10 @@ A valid test should confirm:
 - audio works after a cold boot;
 - the device can be recovered by rebooting if the interface freezes.
 
+Pause playback before pulling, copying, or hashing large binaries on the
+device. Sustained flash I/O and hashing can compete with real-time audio on
+this low-powered target and create test-only underruns.
+
 Do not manually restart `hiby_player` after SpotUI has taken over the framebuffer. That has not been a reliable recovery path.
 
 ## Rollback
@@ -242,7 +251,7 @@ Do not depend on copying files into `/usr/resource` at runtime. That filesystem 
 
 ## Current limitations
 
-The developer preview currently has these installation limitations:
+The developer beta currently has these installation limitations:
 
 - only the HiBy R3 Pro II has been validated;
 - the stock Qobuz tile is repurposed;
@@ -282,14 +291,19 @@ Do not flash when:
 
 ## Release status
 
-Completing this guide does not make SpotUI generally installable. It provides a safe entry point for technically experienced preview testers and connects the existing build, firmware, and recovery documents.
+Completing this guide does not make SpotUI generally installable. It provides
+a safe entry point for technically experienced beta testers and connects the
+existing build, firmware, and recovery documents. The on-device version label
+identifies the tested source milestone; it does not imply that a public binary
+or firmware package is available.
 
-A future public beta should first add:
+Before installation can be generalized beyond this developer beta, add:
 
 - a reproducible preparation or patch-only workflow from a user-supplied stock image;
 - automated host and device preflight checks;
 - clearer authentication setup;
-- versioned release artifacts or patches;
+- reproducible versioned patches or artifacts that contain no proprietary
+  firmware;
 - an explicit compatibility matrix;
 - an uninstall or stock-restore workflow;
 - testing by additional HiBy R3 Pro II owners.

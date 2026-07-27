@@ -1,10 +1,12 @@
 # Roadmap
 
-SpotUI is currently an early developer preview source release for the HiBy R3 Pro II. This roadmap is intentionally conservative: stability, documentation, and recovery come before convenience features.
+SpotUI is currently a `0.1.0-beta.1` developer beta source release for the
+HiBy R3 Pro II. This roadmap is intentionally conservative: stability,
+documentation, and recovery come before convenience features.
 
 ## Current status
 
-- Early developer preview with a source-only public repository.
+- Developer beta with a source-only public repository.
 - Tested primarily on the HiBy R3 Pro II.
 - No ready-to-flash firmware builds are provided in this repository.
 - Manual build, patching, and device setup are still required.
@@ -27,9 +29,12 @@ SpotUI is currently an early developer preview source release for the HiBy R3 Pr
 - Added touchscreen seeking and hardware volume feedback.
 - Added ten redesigned themes with adaptive ambient motion.
 - Added a staged startup status screen and supervised daemon recovery.
+- Added automatic search-result invalidation and refresh after a supervised
+  daemon restart, preventing stale result queues from remaining tappable.
 - Added elapsed startup timing and stage-specific Wi-Fi, Spotify, and library
   retry controls.
 - Added live WiFi, Spotify, audio, output, and queue diagnostics.
+- Added an on-device `0.1.0-beta.1` version identifier in Diagnostics.
 - Added persistent 30-second, 60-second, 2-minute, 5-minute, and Never
   screen-sleep settings with safe touch and power-button wake while audio
   continues.
@@ -44,13 +49,20 @@ SpotUI is currently an early developer preview source release for the HiBy R3 Pr
 - Added persistent brightness settings across SpotUI launches.
 - Documented the tested UI and daemon cross-build and deployment workflow.
 - Expanded recovery, rollback, and common failure troubleshooting procedures.
-- Added a developer preview installation guide with prerequisites, validation, limitations, and rollback guidance.
+- Added a developer beta installation guide with prerequisites, validation,
+  limitations, and rollback guidance.
+- Completed a full release-candidate regression covering all playback sources,
+  rapid selection, automatic advancement, controls, search recovery,
+  sleep/wake, headphone reconnection, UI-only restart, full reboot, settings
+  persistence, themes, menus, Now Playing, Up Next, and Diagnostics.
 
 ## Current development priorities
 
 - Continue small, device-tested playback and navigation improvements.
 - Keep public setup, recovery, and feature documentation synchronized with
   tested milestones.
+- Preserve and publish verifiable release-candidate hashes without adding
+  credentials, proprietary firmware, or user-specific device files.
 
 ## Medium-term goals
 
@@ -60,9 +72,8 @@ SpotUI is currently an early developer preview source release for the HiBy R3 Pr
 ## Possible future goals
 
 - Support additional HiBy models if tested by device owners.
-- Add a settings screen for brightness and other controls.
 - Improve UI polish while keeping the interface readable and touch-friendly.
-- Investigate safer fallback behavior if the backend daemon fails.
+- Continue strengthening recovery behavior for reproducible backend failures.
 - Explore a cleaner patch-only installation workflow.
 - Consider optional bring-your-own-client-ID OAuth support for library writes,
   without making it a standard installation requirement.

@@ -2,7 +2,8 @@
 
 SpotUI for the HiBy R3 Pro II: an experimental standalone, tetherless streaming UI/client with on-device control.
 
-> Early developer preview source release. This is not yet a one-click install or end-user firmware package.
+> Developer beta source release `0.1.0-beta.1`. This is not yet a one-click
+> install or end-user firmware package.
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/noisetta)
 
@@ -20,13 +21,15 @@ This project is not affiliated with, endorsed by, or supported by HiBy Music or 
 
 ## Status
 
-Experimental. Tested primarily on the HiBy R3 Pro II.
+Developer beta `0.1.0-beta.1`, tested primarily on the HiBy R3 Pro II.
 
 Current device-side features include:
 
 - On-device browsing and queued playback of Liked Songs and playlists
 - On-device track search with responsive, tap-safe result loading and a
   persistent, deduplicated eight-query recent-search list
+- Automatic invalidation and refresh of visible search results after a
+  supervised daemon restart
 - Queue-aware Previous, Next, and Up Next views
 - Dedicated Now Playing screen with larger metadata, progress seeking,
   playback controls, and direct Up Next access
@@ -45,7 +48,8 @@ Current device-side features include:
 - Ten appearance themes with performance-aware ambient animation
 - A staged WiFi, Spotify, and library loading screen
 - Supervised playback recovery and reconnect feedback
-- Live diagnostics for WiFi, Spotify, audio, output, and queue state
+- Live diagnostics for WiFi, Spotify, audio, output, and queue state, with an
+  on-device version identifier
 
 “Tetherless” means playback can be browsed and controlled directly from the HiBy instead of using it only as a receiver controlled by a phone or desktop client.
 
@@ -116,7 +120,7 @@ This is an independent community research/modding project. It is provided withou
 
 ## Project documents
 
-- [Developer preview installation](docs/developer-install.md)
+- [Developer beta installation](docs/developer-install.md)
 - [Build and deploy SpotUI](docs/build.md)
 - [Verified firmware build workflow](docs/firmware-build.md)
 - [Roadmap](docs/roadmap.md)

@@ -3609,6 +3609,7 @@ fn main() {
     let mut search_in_progress = false;
     let mut search_receiver:
         Option<std::sync::mpsc::Receiver<Vec<TrackItem>>> = None;
+    let mut search_refresh_after_reconnect = false;
     let mut up_next_page: Option<QueuePage> = None;
     let mut up_next_offset: usize = 0;
 
@@ -5247,7 +5248,31 @@ BRIGHTNESS_LABELS[brightness_idx]
 
             match daemon_playback_state() {
                 Some(updated_state) => {
+                    let daemon_reconnected =
+                        consecutive_status_failures >= 2;
                     consecutive_status_failures = 0;
+
+                    if daemon_reconnected
+                        && search_refresh_after_reconnect
+                    {
+                        let query = search_query.trim().to_string();
+                        let (sender, receiver) =
+                            std::sync::mpsc::channel();
+                        eprintln!(
+                            "[poc] daemon reconnected; refreshing search -> {}",
+                            query
+                        );
+                        std::thread::spawn(move || {
+                            let fetched = daemon_query(
+                                &format!("SEARCH {}", query),
+                            );
+                            let _ = sender.send(fetched);
+                        });
+                        search_receiver = Some(receiver);
+                        search_refresh_after_reconnect = false;
+                        dirty = true;
+                    }
+
                     if updated_state != playback_state {
                         playback_state = updated_state;
                         dirty = true;
@@ -5269,6 +5294,33 @@ BRIGHTNESS_LABELS[brightness_idx]
                         playback_position = None;
                         active_queue_status = None;
                         pending_queue_selection = None;
+                        if pending_load_command
+                            .as_ref()
+                            .map(|pending| {
+                                pending.command.starts_with("LOAD_SEARCH ")
+                            })
+                            .unwrap_or(false)
+                        {
+                            pending_load_command = None;
+                        }
+
+                        if !search_query.trim().is_empty()
+                            && (app_view == AppView::SearchResults
+                                || (app_view == AppView::SearchInput
+                                    && search_in_progress))
+                        {
+                            search_results.clear();
+                            search_selected = None;
+                            search_scroll = 0;
+                            search_receiver = None;
+                            search_in_progress = true;
+                            search_refresh_after_reconnect = true;
+                            app_view = AppView::SearchInput;
+                            eprintln!(
+                                "[poc] search results invalidated; refresh pending"
+                            );
+                        }
+
                         dirty = true;
                         eprintln!(
                             "[poc] daemon unavailable -> reconnecting"

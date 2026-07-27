@@ -1728,22 +1728,32 @@ fn draw_citrus_grove_leaves(
     frame: u32,
     palette: &Palette,
 ) {
-    for index in 0..12u32 {
-        let x = ((index * 97 + frame * (index % 5 + 1))
-            % WIDTH as u32) as i32;
+    for index in 0..9u32 {
+        let x = 4
+            + ((index * 97 + frame * (index % 5 + 1))
+                % (WIDTH as u32 - 28)) as i32;
         let y = 44
-            + ((index * 53 + frame * (index % 3 + 1)) % 530)
+            + ((index * 59 + frame * (index % 3 + 1)) % 518)
                 as i32;
-        let size = if index % 4 == 0 { 7 } else { 5 };
+        let leaf_color = if index % 3 == 0 {
+            palette.header
+        } else {
+            palette.progress_fill
+        };
 
-        Rectangle::new(Point::new(x, y), Size::new(size + 2, size))
-            .into_styled(PrimitiveStyle::with_fill(
-                if index % 3 == 0 {
-                    palette.header
-                } else {
-                    palette.progress_fill
-                },
-            ))
+        Ellipse::new(Point::new(x, y), Size::new(20, 12))
+            .into_styled(PrimitiveStyle::with_fill(leaf_color))
+            .draw(fb)
+            .ok();
+        Rectangle::new(Point::new(x + 4, y + 5), Size::new(12, 1))
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
+            .draw(fb)
+            .ok();
+        Rectangle::new(
+            Point::new(if index % 2 == 0 { x + 18 } else { x - 3 }, y + 5),
+            Size::new(5, 2),
+        )
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
             .draw(fb)
             .ok();
     }
@@ -1755,23 +1765,41 @@ fn draw_paper_lanterns(
     palette: &Palette,
 ) {
     for index in 0..6u32 {
-        let x = ((index * 113 + frame * (index % 2 + 1))
-            % WIDTH as u32) as i32;
-        let y = 550
-            - ((index * 91 + frame * (index % 3 + 1)) % 500)
+        let x = 2
+            + ((index * 113 + frame * (index % 2 + 1))
+                % (WIDTH as u32 - 24)) as i32;
+        let y = 535
+            - ((index * 91 + frame * (index % 3 + 1)) % 455)
                 as i32;
+        let lantern_color = if index % 2 == 0 {
+            palette.progress_fill
+        } else {
+            palette.header
+        };
 
-        Rectangle::new(Point::new(x, y), Size::new(9, 12))
-            .into_styled(PrimitiveStyle::with_fill(
-                if index % 2 == 0 {
-                    palette.progress_fill
-                } else {
-                    palette.header
-                },
-            ))
+        Ellipse::new(Point::new(x, y), Size::new(20, 26))
+            .into_styled(PrimitiveStyle::with_fill(lantern_color))
             .draw(fb)
             .ok();
-        Rectangle::new(Point::new(x + 2, y + 12), Size::new(5, 2))
+        for rib_y in [y + 8, y + 16] {
+            Rectangle::new(Point::new(x + 2, rib_y), Size::new(16, 1))
+                .into_styled(PrimitiveStyle::with_fill(palette.border))
+                .draw(fb)
+                .ok();
+        }
+        Rectangle::new(Point::new(x + 5, y - 2), Size::new(10, 3))
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
+            .draw(fb)
+            .ok();
+        Rectangle::new(Point::new(x + 5, y + 24), Size::new(10, 3))
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
+            .draw(fb)
+            .ok();
+        Rectangle::new(Point::new(x + 9, y + 27), Size::new(2, 6))
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
+            .draw(fb)
+            .ok();
+        Rectangle::new(Point::new(x + 7, y + 32), Size::new(6, 2))
             .into_styled(PrimitiveStyle::with_fill(palette.border))
             .draw(fb)
             .ok();
@@ -1831,25 +1859,45 @@ fn draw_night_market_lights(
     frame: u32,
     palette: &Palette,
 ) {
-    for index in 0..7u32 {
-        let x = ((index * 109 + frame * (index % 3 + 1))
-            % WIDTH as u32) as i32;
-        let y = 58
-            + ((index * 73 + frame * (index % 2 + 1)) % 500)
-                as i32;
-        let lit = (index + frame) % 4 != 0;
+    for index in 0..9u32 {
+        let x = 7 + ((index * 97) % 466) as i32;
+        let y = 52 + ((index * 83) % 510) as i32;
+        let bright = (index + frame) % 4 != 0;
+        let arm = if bright {
+            if index % 3 == 0 { 5 } else { 4 }
+        } else {
+            2
+        };
+        let light_color = if bright {
+            palette.progress_fill
+        } else {
+            palette.header
+        };
 
-        Rectangle::new(Point::new(x, y), Size::new(4, 6))
-            .into_styled(PrimitiveStyle::with_fill(if lit {
-                palette.progress_fill
-            } else {
-                palette.header
-            }))
+        Rectangle::new(
+            Point::new(x - arm, y),
+            Size::new((arm * 2 + 1) as u32, 1),
+        )
+            .into_styled(PrimitiveStyle::with_fill(light_color))
             .draw(fb)
             .ok();
-        Pixel(Point::new(x + 1, y + 7), palette.border)
+        Rectangle::new(
+            Point::new(x, y - arm),
+            Size::new(1, (arm * 2 + 1) as u32),
+        )
+            .into_styled(PrimitiveStyle::with_fill(light_color))
             .draw(fb)
             .ok();
+        if bright {
+            for (offset_x, offset_y) in [(-2, -2), (2, -2), (-2, 2), (2, 2)] {
+                Pixel(
+                    Point::new(x + offset_x, y + offset_y),
+                    palette.border,
+                )
+                .draw(fb)
+                .ok();
+            }
+        }
     }
 }
 

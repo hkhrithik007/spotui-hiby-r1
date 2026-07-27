@@ -1,0 +1,119 @@
+name: Bug report
+description: Report one reproducible SpotUI defect on tested hardware.
+title: "[Bug]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a SpotUI problem. Maintainer capacity is limited,
+        so a report may not receive an immediate response. Never attach
+        credentials, cache files, WiFi details, proprietary firmware, or
+        unsanitized private logs.
+
+  - type: input
+    id: version
+    attributes:
+      label: SpotUI version
+      description: Copy the version shown under Refresh Status in Diagnostics.
+      placeholder: 0.1.0-beta.1
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source tag or commit
+      description: Provide the tag or full commit used to build this installation.
+      placeholder: v0.1.0-beta.1 or a commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and firmware revision
+      description: SpotUI is currently validated only on the HiBy R3 Pro II.
+      placeholder: HiBy R3 Pro II, firmware revision ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation path
+      options:
+        - Existing SpotUI firmware with ADB binary deployment
+        - Privately prepared custom firmware build
+        - Other or unknown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: output
+    attributes:
+      label: Audio output involved
+      options:
+        - 3.5 mm headphone output
+        - 4.4 mm balanced output
+        - No audio output involved
+        - Other or unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Describe the exact visible and audible behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include startup state, source, settings, taps, timing, and whether the result repeats.
+      placeholder: |
+        1. Full reboot
+        2. Launch SpotUI
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Recovery and frequency
+      description: State how often it occurs and what restored normal behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized log excerpt
+      description: Share only the smallest relevant excerpt after removing all private information.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I reproduced this on a HiBy R3 Pro II or clearly identified untested hardware above.
+          required: true
+        - label: I removed credentials, network details, account information, cache data, firmware, and proprietary files.
+          required: true
+        - label: I searched existing issues and read the testing and recovery guidance.
+          required: true

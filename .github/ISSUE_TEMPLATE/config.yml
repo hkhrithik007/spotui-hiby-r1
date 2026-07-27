@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SpotUI roadmap
+    url: https://github.com/noisetta/spotui-hiby-r3proii/blob/main/docs/roadmap.md
+    about: Check current priorities and known limitations before proposing work.
+  - name: Security and private data
+    url: https://github.com/noisetta/spotui-hiby-r3proii/security/policy
+    about: Read this before reporting anything involving credentials or sensitive data.

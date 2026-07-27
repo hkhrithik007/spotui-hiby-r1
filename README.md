@@ -121,6 +121,8 @@ This is an independent community research/modding project. It is provided withou
 ## Project documents
 
 - [0.1.0-beta.1 release notes](docs/releases/0.1.0-beta.1.md)
+- [Beta testing guide](docs/testing.md)
+- [Contribution guidelines](CONTRIBUTING.md)
 - [Developer beta installation](docs/developer-install.md)
 - [Build and deploy SpotUI](docs/build.md)
 - [Verified firmware build workflow](docs/firmware-build.md)

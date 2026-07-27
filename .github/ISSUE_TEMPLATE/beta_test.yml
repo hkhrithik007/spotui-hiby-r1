@@ -1,0 +1,113 @@
+name: Beta test report
+description: Submit a structured passing, mixed, or failed device-test session.
+title: "[Beta test]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for a complete test session rather than one isolated
+        defect. File a Bug report separately for a reproducible failure that
+        needs focused investigation.
+
+  - type: input
+    id: version
+    attributes:
+      label: SpotUI version
+      placeholder: 0.1.0-beta.1
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source tag or commit
+      placeholder: v0.1.0-beta.1 or a commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and firmware revision
+      placeholder: HiBy R3 Pro II, firmware revision ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: output
+    attributes:
+      label: Output tested
+      multiple: true
+      options:
+        - 3.5 mm headphone output
+        - 4.4 mm balanced output
+        - No audio-output test
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall result
+      options:
+        - Pass
+        - Pass with observations
+        - Mixed result
+        - Fail
+    validations:
+      required: true
+
+  - type: textarea
+    id: startup
+    attributes:
+      label: Startup result
+      description: Include full-reboot state, stages shown, time to Liked Songs, and any retry behavior.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: areas
+    attributes:
+      label: Areas exercised
+      description: Select every area actually tested; do not select untested behavior.
+      options:
+        - label: Liked Songs normal and rapid selection
+        - label: Playlist normal and rapid selection
+        - label: Search and recent-search behavior
+        - label: Automatic advancement and queue completion
+        - label: Previous, Next, pause, resume, and seeking
+        - label: Now Playing and Up Next
+        - label: Screen sleep and physical wake during playback
+        - label: Headphone removal and reconnection
+        - label: Settings persistence after reboot
+        - label: Themes, menus, Diagnostics, and normal Exit
+    validations:
+      required: true
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Results and observations
+      description: Note audio, stutters, delay, highlighting, metadata, responsiveness, and anything not tested.
+    validations:
+      required: true
+
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failures or follow-up issues
+      description: Link separate bug reports when applicable, or write None.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy and scope confirmation
+      options:
+        - label: This report contains no credentials, network details, cache data, proprietary firmware, or private account logs.
+          required: true
+        - label: I identified every untested or partially tested area instead of assuming it passed.
+          required: true

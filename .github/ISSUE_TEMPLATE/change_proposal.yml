@@ -1,0 +1,82 @@
+name: Change proposal
+description: Request agreement before beginning substantial or hardware-sensitive work.
+title: "[Proposal]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit this form before substantial implementation work. Maintainer
+        silence does not indicate approval, and an accepted idea does not
+        guarantee a schedule or merge.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: Explain the user-visible need without prescribing a large solution first.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed scope
+      description: Describe the smallest useful change and what remains out of scope.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Documentation or testing
+        - UI or navigation
+        - Playback queue or wire protocol
+        - Daemon or librespot
+        - Audio routing or buffering
+        - Launcher, framebuffer, or firmware
+        - Bluetooth or MSEB research
+        - Build, installation, or recovery
+        - Additional device support
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risks and compatibility
+      description: Cover playback, rollback, storage, protocol, credentials, firmware, and device impact as applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: State available hardware, build checks, device tests, and recovery plan.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include a simpler option when one exists.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Contributor agreement
+      options:
+        - label: I will wait for maintainer agreement before beginning substantial implementation.
+          required: true
+        - label: I understand that review and acceptance are not guaranteed.
+          required: true
+        - label: I will not submit proprietary firmware, credentials, caches, private logs, or compiled device binaries.
+          required: true

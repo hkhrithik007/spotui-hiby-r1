@@ -1428,21 +1428,21 @@ impl Palette {
         }
     }
 
-    /// Terminal and industrial palette inspired by the classic Marathon era.
+    /// Muted industrial palette sampled from the classic Marathon trilogy.
     fn durandal_terminal() -> Self {
         Self {
-            background: Rgb565::new(1, 3, 5),
-            header: Rgb565::new(13, 20, 8),
-            header_text: Rgb565::new(8, 63, 8),
-            text: Rgb565::new(28, 58, 27),
-            selected_row: Rgb565::new(12, 7, 17),
-            selected_text: Rgb565::new(8, 63, 8),
-            now_playing: Rgb565::new(3, 7, 10),
-            progress_track: Rgb565::CSS_DARK_GRAY,
-            progress_fill: Rgb565::new(8, 63, 8),
-            separator: Rgb565::new(7, 13, 5),
-            toolbar: Rgb565::new(22, 5, 4),
-            border: Rgb565::new(14, 28, 14),
+            background: Rgb565::new(1, 3, 2),
+            header: Rgb565::new(20, 40, 18),
+            header_text: Rgb565::new(1, 3, 2),
+            text: Rgb565::new(26, 53, 25),
+            selected_row: Rgb565::new(3, 13, 10),
+            selected_text: Rgb565::new(30, 53, 1),
+            now_playing: Rgb565::new(1, 5, 2),
+            progress_track: Rgb565::new(5, 16, 5),
+            progress_fill: Rgb565::new(5, 42, 5),
+            separator: Rgb565::new(10, 9, 3),
+            toolbar: Rgb565::new(4, 9, 4),
+            border: Rgb565::new(15, 30, 4),
         }
     }
 
@@ -3283,6 +3283,11 @@ fn draw_list(
             .draw(fb)
             .ok();
         }
+
+        Rectangle::new(Point::new(0, 40), Size::new(1, 540))
+            .into_styled(PrimitiveStyle::with_fill(palette.border))
+            .draw(fb)
+            .ok();
     }
 
     if app_view != AppView::NowPlaying {

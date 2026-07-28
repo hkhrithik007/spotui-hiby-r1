@@ -14,6 +14,9 @@ STAGE=$DEST/.spotui-install-stage
 LOG=${SPOTUI_PROVISION_LOG:-/tmp/spotui-provision.log}
 LOCK=${SPOTUI_PROVISION_LOCK:-/tmp/spotui-provision.lock}
 WAIT_SECONDS=${SPOTUI_PROVISION_WAIT_SECONDS:-60}
+EXTRACT_INITIAL_DELAY_SECONDS=${SPOTUI_PROVISION_EXTRACT_INITIAL_DELAY_SECONDS:-30}
+EXTRACT_ATTEMPTS=${SPOTUI_PROVISION_EXTRACT_ATTEMPTS:-12}
+EXTRACT_RETRY_SECONDS=${SPOTUI_PROVISION_EXTRACT_RETRY_SECONDS:-10}
 
 FILES="spotui-ui-poc spotui_daemon ld-musl-mipsel-sf.so.1 start_spotui.sh start_spotui.real.sh return_to_hiby.sh"
 
@@ -165,14 +168,55 @@ if [ "$available_kb" -lt "$required_kb" ]; then
     exit 1
 fi
 
-rm -rf "$STAGE"
-mkdir -p "$STAGE"
-
-if ! xz -dc "$ARCHIVE" | tar -xf - -C "$STAGE"; then
-    log "could not extract runtime archive"
-    rm -rf "$STAGE"
+case "$EXTRACT_INITIAL_DELAY_SECONDS" in
+    ''|*[!0-9]*)
+        log "invalid extraction retry configuration"
+        exit 1
+        ;;
+esac
+case "$EXTRACT_ATTEMPTS" in
+    ''|*[!0-9]*)
+        log "invalid extraction retry configuration"
+        exit 1
+        ;;
+esac
+case "$EXTRACT_RETRY_SECONDS" in
+    ''|*[!0-9]*)
+        log "invalid extraction retry configuration"
+        exit 1
+        ;;
+esac
+if [ "$EXTRACT_ATTEMPTS" -lt 1 ]; then
+    log "invalid extraction attempt count"
     exit 1
 fi
+
+if [ "$EXTRACT_INITIAL_DELAY_SECONDS" -gt 0 ]; then
+    log "waiting $EXTRACT_INITIAL_DELAY_SECONDS seconds for startup I/O to settle"
+    sleep "$EXTRACT_INITIAL_DELAY_SECONDS"
+fi
+
+extract_attempt=1
+while :; do
+    rm -rf "$STAGE"
+    if ! mkdir -p "$STAGE"; then
+        log "could not create runtime staging directory"
+        exit 1
+    fi
+
+    if xz -dc "$ARCHIVE" | tar -xf - -C "$STAGE"; then
+        break
+    fi
+
+    log "runtime extraction attempt $extract_attempt failed"
+    rm -rf "$STAGE"
+    if [ "$extract_attempt" -ge "$EXTRACT_ATTEMPTS" ]; then
+        log "could not extract runtime archive after $EXTRACT_ATTEMPTS attempts"
+        exit 1
+    fi
+    sleep "$EXTRACT_RETRY_SECONDS"
+    extract_attempt=$((extract_attempt + 1))
+done
 
 if ! (cd "$STAGE" && sha256sum -c SHA256SUMS >/dev/null 2>&1); then
     log "extracted runtime hash verification failed"

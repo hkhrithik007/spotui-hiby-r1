@@ -137,6 +137,45 @@ authorization to publish the artifacts. Public testing still requires the
 credential onboarding, release packaging, notices, and recovery guidance
 described in this document.
 
+## Privacy-remapped release-candidate validation
+
+The public-tester candidate was rebuilt with neutral Rust source paths and a
+bounded background extraction settling/retry policy. The following exact pair
+completed both existing-runtime and fresh-provision testing on the maintainer
+device on 2026-07-27:
+
+```text
+Firmware SHA-256: b4e78ab3eb7154f68ffc333a9fdd3770de5e16b1a65752a908812e3c7cfe6df0
+Firmware MD5:     1a9afde2f694c11ae12ad9f9e7e70ca4
+Runtime SHA-256:  f16ff95b69400ee360e27c860e690835e3bea8898742dd65b3b362048d0e8da8
+Rootfs SHA-256:   c5448b6716d71702ec810988572d24fba1eb3c319b22cbefd6903f8af6dd06f1
+Rootfs size:      37322752 bytes
+UI SHA-256:       e8111b160f8daad4bf2ebae94beaba5fe0f67ad29a5e4596334c4789e4bb573e
+Daemon SHA-256:   f7e8cbcedbb918900cf85aa7a4589c18ec4a9031db6754ac915f13daf00c7769
+Runtime profile:  XZ preset 4, CRC32, 4 MiB dictionary
+```
+
+The stock interface appeared in approximately 5–10 seconds and was not
+blocked by provisioning. With all six runtime targets absent, the final
+firmware waited 30 seconds for startup I/O to settle and installed the runtime
+on its first extraction attempt. Every installed hash and permission matched,
+metadata matched the firmware manifest, no staging directory or lock remained,
+and private device credentials retained mode 0600 inside a mode-0700 cache.
+Liked Songs, Search, pause/resume, Next, audio, highlighting, and metadata then
+passed on the freshly provisioned runtime.
+
+Two intermediate privacy-remapped firmware images are retired because their
+fresh-boot extraction windows were too short. Do not distribute images with
+these SHA-256 values:
+
+```text
+28de738dc6aee77e1298b160876f011b62949adafcac6d524c670bd515af49b7
+46ef2c45add56850f48640e83cb6b0b9f72f8de5803287878d45a97f7fa7fa25
+```
+
+Both failed safely without activating partial runtime files or changing
+credentials. The final candidate supersedes them.
+
 ## Retired embedded-payload prototype
 
 The first unpublished prototype embedded the compressed runtime in the rootfs

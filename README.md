@@ -127,6 +127,8 @@ This is an independent community research/modding project. It is provided withou
 - [Developer beta installation](docs/developer-install.md)
 - [Build and deploy SpotUI](docs/build.md)
 - [Verified firmware build workflow](docs/firmware-build.md)
+- [HMOD v1.5 tester installer and validation](docs/tester-installer.md)
+- [Privacy-gated tester release bundle](docs/release-bundle.md)
 - [Roadmap](docs/roadmap.md)
 - [Recovery notes](docs/recovery.md)
 

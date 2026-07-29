@@ -13,7 +13,7 @@ Optional donations support test hardware, documentation, maintenance, and contin
 ## Screenshots
 
 <p>
-  <img src="docs/images/spotui-interface.png" alt="SpotUI interface screenshot" width="360">
+  <img src="docs/images/spotui-showcase-v1.png" alt="SpotUI theme and interface showcase">
 </p>
 
 This project provides source code, scripts, and notes for running a lightweight standalone music client on HiBy devices. It is intended for device owners who want to build, study, and modify their own hardware.

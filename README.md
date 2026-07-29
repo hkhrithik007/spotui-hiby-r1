@@ -2,8 +2,9 @@
 
 SpotUI for the HiBy R3 Pro II: an experimental standalone, tetherless streaming UI/client with on-device control.
 
-> Developer beta source release `0.1.0-beta.1`. This is not yet a one-click
-> install or end-user firmware package.
+> Experimental tester beta `0.1.0-beta.1`. A manually installed, device-tested
+> HiBy R3 Pro II bundle may be published as a clearly marked GitHub prerelease;
+> it is not a one-click or production-ready package.
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/noisetta)
 
@@ -69,9 +70,9 @@ Flashing or modifying firmware can brick your device. Use at your own risk.
 - `engine/firmware/` — init scripts and firmware-side integration notes.
 - `apps/spotify/daemon/` — Spotify-compatible daemon source using librespot.
 
-## What is not included
+## Source tree and release assets
 
-This repository does not include:
+The Git-tracked source tree does not include:
 
 - HiBy firmware images
 - modified `.upt` firmware files
@@ -81,9 +82,14 @@ This repository does not include:
 - `librespot-cache/`
 - WiFi credentials
 - user-specific device backups
-- ready-to-flash firmware builds
+- release binaries or ready-to-flash firmware builds
 
-This source repository does not include firmware images, ready-to-flash builds, Spotify credentials, WiFi credentials, or user-specific device files. Users are responsible for any firmware, accounts, credentials, and device setup used with their own hardware.
+A reviewed [GitHub prerelease](https://github.com/noisetta/spotui-hiby-r3proii/releases)
+may provide an exact, device-tested firmware/runtime bundle as a separate
+download. Release assets remain experimental and may contain proprietary HiBy
+components outside SpotUI's license. They never include Spotify credentials,
+WiFi credentials, cache data, logs, or user-specific device files. Read every
+included notice and recovery document before flashing.
 
 ## Repository structure
 

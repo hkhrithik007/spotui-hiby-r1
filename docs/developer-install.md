@@ -53,19 +53,23 @@ There are two related development workflows:
 
 The firmware workflow is required for durable launcher artwork, the visible SpotUI caption, and the firmware-side Qobuz integration.
 
-## What the repository does not provide
+## Source tree and tester release boundary
 
-The public repository does not provide:
+The Git-tracked source tree does not provide:
 
 - official or modified HiBy firmware images;
-- a ready-to-flash SpotUI `.upt` release;
 - proprietary HiBy binaries;
 - an automatically extracted and patched firmware tree;
 - a complete MIPS cross-toolchain;
 - Spotify credentials, tokens, or cache files;
 - WiFi credentials;
-- a prebuilt desktop authentication-helper binary;
 - a one-command installation or uninstall process.
+
+A clearly marked GitHub prerelease may separately attach the exact reviewed
+tester bundle. That archive includes the device-tested `.upt`, its matched
+runtime archive, and a prebuilt x86-64 Linux authentication helper. It does
+not turn this developer guide into a general build or installation path, and
+it never contains account, network, cache, log, or user-specific data.
 
 The guarded firmware builder packages and verifies an **already prepared** private firmware tree. It does not download stock firmware, extract it, or apply every proprietary binary modification automatically.
 
@@ -264,8 +268,10 @@ The developer beta currently has these installation limitations:
 
 - only the HiBy R3 Pro II has been validated;
 - the stock Qobuz tile is repurposed;
-- firmware preparation still contains manual and private steps;
-- no ready-to-flash public image is provided;
+- source builds and new firmware preparation still contain manual and private
+  steps;
+- the public tester image supports only the exact validated R3 Pro II/HMOD
+  v1.5 combination;
 - no automated stock-firmware extraction workflow is included;
 - no public preflight utility checks the device model and firmware revision;
 - the authentication helper has currently been validated only on x86-64 Linux
@@ -301,18 +307,18 @@ Do not flash when:
 
 ## Release status
 
-Completing this guide does not make SpotUI generally installable. It provides
-a safe entry point for technically experienced beta testers and connects the
-existing build, firmware, and recovery documents. The on-device version label
-identifies the tested source milestone; it does not imply that a public binary
-or firmware package is available.
+Completing this developer guide does not produce an automatically approved
+public release. Public testers should use only an exact archive attached to a
+clearly marked GitHub prerelease and verify its published checksum. The
+on-device version label identifies the tested source milestone; it does not
+make locally rebuilt firmware equivalent to the validated release artifact.
 
 Before installation can be generalized beyond this developer beta, add:
 
 - a reproducible preparation or patch-only workflow from a user-supplied stock image;
 - automated host and device preflight checks;
-- prebuilt, versioned authentication-helper artifacts for each supported host
-  platform;
+- prebuilt, versioned authentication-helper artifacts for additional supported
+  host platforms;
 - reproducible versioned patches or artifacts that contain no proprietary
   firmware;
 - an explicit compatibility matrix;

@@ -90,7 +90,8 @@ Before uploading a candidate:
 - extract it into a new directory and run `sha256sum -c SHA256SUMS`;
 - review every included text file;
 - test the exact archive on the maintainer device;
-- obtain at least one informed external tester result before widening access;
+- mark the GitHub release as a prerelease and provide one privacy-safe public
+  feedback issue for voluntary tester results;
 - preserve the upstream license/notice and clearly identify proprietary
   firmware boundaries;
 - confirm recovery firmware for the exact model remains available;

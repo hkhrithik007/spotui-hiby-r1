@@ -1,15 +1,18 @@
 # Roadmap
 
-SpotUI is currently a `0.1.0-beta.1` developer beta source release for the
-HiBy R3 Pro II. This roadmap is intentionally conservative: stability,
-documentation, and recovery come before convenience features.
+SpotUI is currently a `0.1.0-beta.1` experimental tester beta for the HiBy R3
+Pro II. This roadmap is intentionally conservative: stability, documentation,
+and recovery come before convenience features.
 
 ## Current status
 
-- Developer beta with a source-only public repository.
+- Public source repository with a separately attached, experimental tester
+  prerelease.
 - Tested primarily on the HiBy R3 Pro II.
-- No ready-to-flash firmware builds are provided in this repository.
-- Manual build, patching, and device setup are still required.
+- The tester bundle uses a two-file SD-card installation and a separate Linux
+  OAuth onboarding step; it is not a one-click installer.
+- Firmware and runtime artifacts are release assets, not Git-tracked source
+  files.
 - The current UI is designed around large, simple touch rows for reliable use on the device screen.
 
 ## Recently completed
@@ -67,7 +70,8 @@ documentation, and recovery come before convenience features.
 - Keep public setup, recovery, and feature documentation synchronized with
   tested milestones.
 - Preserve and publish verifiable release-candidate hashes without adding
-  credentials, proprietary firmware, or user-specific device files.
+  credentials or user-specific device files, while clearly identifying the
+  licensing boundary around proprietary firmware components.
 
 ## Next planned improvements
 
@@ -154,7 +158,7 @@ launching remains the deliberate default.
 ## Not planned right now
 
 - One-click installer.
-- Ready-to-flash firmware builds in this repository.
+- Committing ready-to-flash firmware builds to the Git source tree.
 - Paid or paywalled features.
 - Guaranteed device support.
 - Support for devices that have not been tested by owners.

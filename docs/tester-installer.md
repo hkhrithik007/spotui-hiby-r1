@@ -1,9 +1,11 @@
 # HMOD v1.5 tester installer
 
 > [!CAUTION]
-> This installer is an unpublished development prototype. Its output must not
-> be distributed or flashed by external testers until the complete device test
-> in this document passes and a reviewed release record is created.
+> This installer and its output remain experimental. Public testers should use
+> only the exact archive attached to a clearly marked SpotUI GitHub prerelease,
+> verify its published outer SHA-256 and bundled `SHA256SUMS`, and read the
+> included recovery guidance before flashing. Locally rebuilt output must not
+> be distributed until it completes the same review and device-validation gate.
 
 The tester installer converts the exact published HiBy Mods v1.5 firmware for
 the HiBy R3 Pro II into a two-file SpotUI beta installer. Testers copy the
@@ -64,7 +66,7 @@ its result in:
 
 ## Build inputs
 
-The current prototype requires locally reviewed release binaries:
+The builder requires locally reviewed release binaries:
 
 - `spotui-ui-poc`;
 - `spotui_daemon`;
@@ -104,9 +106,9 @@ device has no swap and only about 56 MB of RAM; desktop-oriented XZ preset 9
 requires too much decompression memory for its BusyBox decoder.
 
 Generated `.upt` images, runtime archives, and runtime binaries must not be
-committed to the source repository. A tested firmware/runtime pair may later
-be attached to a clearly marked GitHub prerelease with its hashes, provenance,
-notices, and recovery warning.
+committed to the Git-tracked source tree. An exact, device-tested
+firmware/runtime pair may instead be attached to a clearly marked GitHub
+prerelease with its hashes, provenance, notices, and recovery warning.
 
 ## Maintainer device-validation record
 

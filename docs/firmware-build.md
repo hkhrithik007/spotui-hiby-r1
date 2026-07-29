@@ -2,7 +2,11 @@
 
 This document describes the currently verified local firmware build workflow for SpotUI on the HiBy R3 Pro II.
 
-The repository does not contain proprietary HiBy firmware images, extracted firmware files, ready-to-flash update images, credentials, or device snapshots. You must supply and prepare those files locally from firmware and hardware that you are authorized to use.
+The Git-tracked source tree does not contain proprietary HiBy firmware images,
+extracted firmware files, ready-to-flash update images, credentials, or device
+snapshots. A reviewed GitHub prerelease may separately attach the exact tested
+bundle; new local builds still require firmware and hardware that you are
+authorized to use.
 
 > [!WARNING]
 > Custom firmware can make a device temporarily unbootable. This workflow has only been tested on the HiBy R3 Pro II. Do not use the generated image on another model.

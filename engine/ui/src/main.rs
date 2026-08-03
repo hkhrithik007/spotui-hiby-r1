@@ -1112,13 +1112,21 @@ fn daemon_playlist_query(cmd: &str) -> Vec<PlaylistItem> {
         }
     };
 
+    if let Err(e) = socket.set_read_timeout(Some(
+        std::time::Duration::from_secs(12),
+    )) {
+        eprintln!(
+            "[poc] daemon_playlist_query read timeout failed: {e}"
+        );
+    }
+
     if socket.write_all(cmd.as_bytes()).is_err()
         || socket.write_all(b"\n").is_err()
     {
         return playlists;
     }
 
-    // Profile playlist responses are bounded to at most 100 entries.
+    // Library responses are bounded by the daemon and the socket timeout.
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 2048];
 
@@ -1131,12 +1139,20 @@ fn daemon_playlist_query(cmd: &str) -> Vec<PlaylistItem> {
                 let response = String::from_utf8_lossy(&buffer);
                 if response
                     .lines()
-                    .any(|line| line.starts_with("END "))
+                    .any(|line| {
+                        line.starts_with("END ")
+                            || line.starts_with("ERR ")
+                    })
                 {
                     break;
                 }
             }
-            Err(_) => break,
+            Err(e) => {
+                eprintln!(
+                    "[poc] daemon_playlist_query read stopped: {e}"
+                );
+                break;
+            }
         }
     }
 

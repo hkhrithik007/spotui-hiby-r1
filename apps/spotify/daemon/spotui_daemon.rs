@@ -38,7 +38,7 @@
 // that has already entered underrun recovery.
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     process::exit,
     sync::Arc,
     time::Duration,
@@ -1542,7 +1542,7 @@ async fn handle_conn<R, W>(
             "PLAYLIST" => {
                 playlist_tracks(&session, arg, &browse_cache).await
             }
-            "PLAYLISTS" => public_playlists(&session).await,
+            "PLAYLISTS" => library_playlists(&session).await,
             "VOL_UP" => {
                 // Step ~6% of full range per press (~16 steps floor to ceiling).
                 let step = (u16::MAX as u32 * 6 / 100) as u16;
@@ -1586,84 +1586,533 @@ fn vol_percent(v: u16) -> u32 {
     (v as u32 * 100) / u16::MAX as u32
 }
 
-/// Fetch playlists exposed through the current users Spotify profile.
-///
-/// This endpoint includes public and followed profile playlists. It does not
-/// expose private playlists or rootlist folder organization.
-async fn public_playlists(session: &Session) -> String {
-    const MAX_PLAYLISTS: usize = 100;
+#[derive(Default)]
+struct RootlistPlaylist {
+    link: String,
+    name: String,
+    owner: String,
+}
 
-    let username = session.username();
+fn protobuf_varint(
+    input: &[u8],
+    position: &mut usize,
+) -> Result<u64, &'static str> {
+    let mut value = 0u64;
 
-    let response = match session
-        .spclient()
-        .get_user_profile(
-            &username,
-            Some(MAX_PLAYLISTS as u32),
-            Some(0),
-        )
-        .await
-    {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            return format!(
-                "ERR playlist profile fetch failed: {e}\n"
+    for shift in (0..=63).step_by(7) {
+        let byte = *input
+            .get(*position)
+            .ok_or("truncated protobuf varint")?;
+        *position += 1;
+
+        value |= ((byte & 0x7f) as u64) << shift;
+        if byte & 0x80 == 0 {
+            return Ok(value);
+        }
+    }
+
+    Err("protobuf varint is too long")
+}
+
+fn protobuf_bytes<'a>(
+    input: &'a [u8],
+    position: &mut usize,
+) -> Result<&'a [u8], &'static str> {
+    let length = protobuf_varint(input, position)? as usize;
+    let end = position
+        .checked_add(length)
+        .ok_or("protobuf length overflow")?;
+    let bytes = input
+        .get(*position..end)
+        .ok_or("truncated protobuf bytes")?;
+    *position = end;
+    Ok(bytes)
+}
+
+fn protobuf_skip(
+    input: &[u8],
+    position: &mut usize,
+    wire_type: u8,
+) -> Result<(), &'static str> {
+    match wire_type {
+        0 => {
+            protobuf_varint(input, position)?;
+        }
+        1 => {
+            *position = position
+                .checked_add(8)
+                .ok_or("protobuf fixed64 overflow")?;
+            if *position > input.len() {
+                return Err("truncated protobuf fixed64");
+            }
+        }
+        2 => {
+            protobuf_bytes(input, position)?;
+        }
+        5 => {
+            *position = position
+                .checked_add(4)
+                .ok_or("protobuf fixed32 overflow")?;
+            if *position > input.len() {
+                return Err("truncated protobuf fixed32");
+            }
+        }
+        _ => return Err("unsupported protobuf wire type"),
+    }
+
+    Ok(())
+}
+
+fn protobuf_string(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
+fn parse_playlist4_attributes(
+    input: &[u8],
+) -> Result<String, &'static str> {
+    let mut position = 0usize;
+    let mut name = String::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 1 && wire_type == 2 {
+            name = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?);
+        } else {
+            protobuf_skip(input, &mut position, wire_type)?;
+        }
+    }
+
+    Ok(name)
+}
+
+fn parse_playlist4_item(
+    input: &[u8],
+) -> Result<String, &'static str> {
+    let mut position = 0usize;
+    let mut uri = String::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 1 && wire_type == 2 {
+            uri = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?);
+        } else {
+            protobuf_skip(input, &mut position, wire_type)?;
+        }
+    }
+
+    Ok(uri)
+}
+
+fn parse_playlist4_meta_item(
+    input: &[u8],
+) -> Result<(String, String), &'static str> {
+    let mut position = 0usize;
+    let mut name = String::new();
+    let mut owner = String::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        match (field, wire_type) {
+            (2, 2) => name = parse_playlist4_attributes(
+                protobuf_bytes(input, &mut position)?,
+            )?,
+            (5, 2) => owner = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?),
+            _ => protobuf_skip(input, &mut position, wire_type)?,
+        }
+    }
+
+    Ok((name, owner))
+}
+
+fn parse_playlist4_list_items(
+    input: &[u8],
+) -> Result<Vec<RootlistPlaylist>, &'static str> {
+    let mut position = 0usize;
+    let mut uris = Vec::new();
+    let mut metadata = Vec::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        match (field, wire_type) {
+            (3, 2) => uris.push(parse_playlist4_item(
+                protobuf_bytes(input, &mut position)?,
+            )?),
+            (4, 2) => metadata.push(parse_playlist4_meta_item(
+                protobuf_bytes(input, &mut position)?,
+            )?),
+            _ => protobuf_skip(input, &mut position, wire_type)?,
+        }
+    }
+
+    Ok(uris
+        .into_iter()
+        .enumerate()
+        .map(|(index, link)| {
+            let (name, owner) = metadata
+                .get(index)
+                .cloned()
+                .unwrap_or_default();
+            RootlistPlaylist { link, name, owner }
+        })
+        .collect())
+}
+
+fn parse_playlist4_rootlist(
+    input: &[u8],
+) -> Result<Vec<RootlistPlaylist>, &'static str> {
+    let mut position = 0usize;
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 5 && wire_type == 2 {
+            return parse_playlist4_list_items(
+                protobuf_bytes(input, &mut position)?,
             );
         }
-    };
 
-    let profile: serde_json::Value =
-        match serde_json::from_slice(response.as_ref()) {
-            Ok(value) => value,
-            Err(e) => {
-                return format!(
-                    "ERR playlist profile parse failed: {e}\n"
-                );
+        protobuf_skip(input, &mut position, wire_type)?;
+    }
+
+    Err("rootlist response has no contents")
+}
+
+fn parse_cosmos_owner(input: &[u8]) -> Result<String, &'static str> {
+    let mut position = 0usize;
+    let mut username = String::new();
+    let mut display_name = String::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        match (field, wire_type) {
+            (2, 2) => username = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?),
+            (3, 2) => display_name = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?),
+            _ => protobuf_skip(input, &mut position, wire_type)?,
+        }
+    }
+
+    if display_name.is_empty() {
+        Ok(username)
+    } else {
+        Ok(display_name)
+    }
+}
+
+fn parse_cosmos_playlist_metadata(
+    input: &[u8],
+) -> Result<RootlistPlaylist, &'static str> {
+    let mut position = 0usize;
+    let mut playlist = RootlistPlaylist::default();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        match (field, wire_type) {
+            (1, 2) => playlist.link = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?),
+            (2, 2) => playlist.name = protobuf_string(protobuf_bytes(
+                input,
+                &mut position,
+            )?),
+            (3, 2) => playlist.owner = parse_cosmos_owner(
+                protobuf_bytes(input, &mut position)?,
+            )?,
+            _ => protobuf_skip(input, &mut position, wire_type)?,
+        }
+    }
+
+    Ok(playlist)
+}
+
+fn parse_cosmos_playlist(
+    input: &[u8],
+) -> Result<Option<RootlistPlaylist>, &'static str> {
+    let mut position = 0usize;
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 2 && wire_type == 2 {
+            return parse_cosmos_playlist_metadata(
+                protobuf_bytes(input, &mut position)?,
+            )
+            .map(Some);
+        }
+
+        protobuf_skip(input, &mut position, wire_type)?;
+    }
+
+    Ok(None)
+}
+
+fn parse_cosmos_item(
+    input: &[u8],
+    depth: usize,
+    playlists: &mut Vec<RootlistPlaylist>,
+) -> Result<(), &'static str> {
+    let mut position = 0usize;
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        match (field, wire_type) {
+            (2, 2) => parse_cosmos_folder(
+                protobuf_bytes(input, &mut position)?,
+                depth + 1,
+                playlists,
+            )?,
+            (3, 2) => {
+                if let Some(playlist) = parse_cosmos_playlist(
+                    protobuf_bytes(input, &mut position)?,
+                )? {
+                    playlists.push(playlist);
+                }
             }
-        };
+            _ => protobuf_skip(input, &mut position, wire_type)?,
+        }
+    }
 
-    let Some(playlists) = profile
+    Ok(())
+}
+
+fn parse_cosmos_folder(
+    input: &[u8],
+    depth: usize,
+    playlists: &mut Vec<RootlistPlaylist>,
+) -> Result<(), &'static str> {
+    if depth > 16 {
+        return Err("rootlist folder nesting is too deep");
+    }
+
+    let mut position = 0usize;
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 1 && wire_type == 2 {
+            parse_cosmos_item(
+                protobuf_bytes(input, &mut position)?,
+                depth,
+                playlists,
+            )?;
+        } else {
+            protobuf_skip(input, &mut position, wire_type)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn parse_cosmos_rootlist(
+    input: &[u8],
+) -> Result<Vec<RootlistPlaylist>, &'static str> {
+    let mut position = 0usize;
+    let mut playlists = Vec::new();
+
+    while position < input.len() {
+        let key = protobuf_varint(input, &mut position)?;
+        let field = key >> 3;
+        let wire_type = (key & 7) as u8;
+
+        if field == 1 && wire_type == 2 {
+            parse_cosmos_folder(
+                protobuf_bytes(input, &mut position)?,
+                0,
+                &mut playlists,
+            )?;
+        } else {
+            protobuf_skip(input, &mut position, wire_type)?;
+        }
+    }
+
+    Ok(playlists)
+}
+
+fn rootlist_playlist_id(link: &str) -> Option<String> {
+    match SpotifyUri::from_uri(link).ok()? {
+        SpotifyUri::Playlist { id, .. } => id.to_base62().ok(),
+        _ => None,
+    }
+}
+
+async fn mercury_library_playlists(
+    session: &Session,
+) -> Result<Vec<RootlistPlaylist>, String> {
+    const ROOTLIST_TIMEOUT: Duration = Duration::from_secs(3);
+
+    let mut uri = format!(
+        "hm://playlist/user/{}/rootlist?country={}",
+        session.username(),
+        session.country(),
+    );
+    if let Some(product) = session.get_user_attribute("type") {
+        uri.push_str("&product=");
+        uri.push_str(&product);
+    }
+
+    let request = session
+        .mercury()
+        .get(uri)
+        .map_err(|_| "rootlist request could not start".to_string())?;
+    let response = tokio::time::timeout(ROOTLIST_TIMEOUT, request)
+        .await
+        .map_err(|_| "rootlist request timed out".to_string())?
+        .map_err(|_| "rootlist request failed".to_string())?;
+    let payload = response
+        .payload
+        .first()
+        .ok_or_else(|| "rootlist response was empty".to_string())?;
+
+    parse_playlist4_rootlist(payload)
+        .map_err(|e| format!("rootlist parse failed: {e}"))
+}
+
+async fn cosmos_library_playlists(
+    session: &Session,
+) -> Result<Vec<RootlistPlaylist>, String> {
+    const MAX_ROOTLIST_ITEMS: usize = 250;
+    const ROOTLIST_TIMEOUT: Duration = Duration::from_secs(6);
+
+    let response = tokio::time::timeout(
+        ROOTLIST_TIMEOUT,
+        session
+            .spclient()
+            .get_rootlist(0, Some(MAX_ROOTLIST_ITEMS)),
+    )
+    .await
+    .map_err(|_| "decorated rootlist request timed out".to_string())?
+    .map_err(|_| "decorated rootlist request failed".to_string())?;
+
+    parse_playlist4_rootlist(response.as_ref())
+        .or_else(|_| parse_cosmos_rootlist(response.as_ref()))
+        .map_err(|e| format!("decorated rootlist parse failed: {e}"))
+}
+
+async fn profile_playlists(
+    session: &Session,
+) -> Result<Vec<RootlistPlaylist>, String> {
+    const MAX_PLAYLISTS: usize = 100;
+    const PROFILE_TIMEOUT: Duration = Duration::from_secs(8);
+
+    let response = tokio::time::timeout(
+        PROFILE_TIMEOUT,
+        session
+        .spclient()
+        .get_user_profile(
+            &session.username(),
+            Some(MAX_PLAYLISTS as u32),
+            Some(0),
+        ),
+    )
+        .await
+        .map_err(|_| "playlist profile request timed out".to_string())?
+        .map_err(|_| "playlist profile request failed".to_string())?;
+
+    let profile: serde_json::Value = serde_json::from_slice(
+        response.as_ref(),
+    )
+    .map_err(|_| "playlist profile response was invalid".to_string())?;
+    let playlists = profile
         .get("public_playlists")
         .and_then(serde_json::Value::as_array)
-    else {
-        return concat!(
-            "ERR profile has no public_playlists field",
-            "\n"
-        )
-        .to_string();
-    };
+        .ok_or_else(|| {
+            "playlist profile omitted public playlists".to_string()
+        })?;
+
+    Ok(playlists
+        .iter()
+        .take(MAX_PLAYLISTS)
+        .filter_map(|playlist| {
+            let link = playlist
+                .get("uri")
+                .and_then(serde_json::Value::as_str)?
+                .to_string();
+            let name = playlist
+                .get("name")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("Untitled Playlist")
+                .to_string();
+            let owner = playlist
+                .get("owner_name")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("")
+                .to_string();
+            Some(RootlistPlaylist { link, name, owner })
+        })
+        .collect())
+}
+
+fn format_library_playlists(
+    playlists: Vec<RootlistPlaylist>,
+) -> String {
 
     let mut reply = String::new();
+    let mut seen = HashSet::new();
     let mut count = 0usize;
 
-    for playlist in playlists.iter().take(MAX_PLAYLISTS) {
-        let Some(uri) = playlist
-            .get("uri")
-            .and_then(serde_json::Value::as_str)
-        else {
+    for playlist in playlists {
+        let Some(id) = rootlist_playlist_id(&playlist.link) else {
             continue;
         };
 
-        let Some(id) = uri.strip_prefix("spotify:playlist:") else {
+        if id.is_empty() || !seen.insert(id.clone()) {
             continue;
+        }
+
+        let name = if playlist.name.is_empty() {
+            "Untitled Playlist"
+        } else {
+            &playlist.name
         };
-
-        let name = playlist
-            .get("name")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("Untitled Playlist");
-
-        let owner = playlist
-            .get("owner_name")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
 
         reply.push_str("PLAYLIST ");
-        reply.push_str(&sanitize_field(id));
+        reply.push_str(&sanitize_field(&id));
         reply.push_str("\t");
         reply.push_str(&sanitize_field(name));
         reply.push_str("\t");
-        reply.push_str(&sanitize_field(owner));
+        reply.push_str(&sanitize_field(&playlist.owner));
         reply.push_str("\n");
 
         count += 1;
@@ -1671,6 +2120,73 @@ async fn public_playlists(session: &Session) -> String {
 
     reply.push_str(&format!("END {count}\n"));
     reply
+}
+
+/// Fetch the authenticated user's saved, private, followed, and foldered
+/// playlists. Prefer the decorated Cosmos rootlist because it supplies names,
+/// then fall back to the fast Mercury ID list and finally the public profile.
+async fn library_playlists_inner(session: &Session) -> String {
+    match cosmos_library_playlists(session).await {
+        Ok(playlists) if !playlists.is_empty() => {
+            eprintln!(
+                "[spotui] decorated library rootlist returned {} entries",
+                playlists.len(),
+            );
+            format_library_playlists(playlists)
+        }
+        Ok(_) => {
+            eprintln!(
+                "[spotui] decorated rootlist was empty; using Mercury fallback"
+            );
+            library_playlists_fallback(session).await
+        }
+        Err(e) => {
+            eprintln!(
+                "[spotui] {e}; using Mercury fallback"
+            );
+            library_playlists_fallback(session).await
+        }
+    }
+}
+
+async fn library_playlists_fallback(session: &Session) -> String {
+    match mercury_library_playlists(session).await {
+        Ok(playlists) if !playlists.is_empty() => {
+            eprintln!(
+                "[spotui] Mercury library rootlist returned {} entries",
+                playlists.len(),
+            );
+            format_library_playlists(playlists)
+        }
+        Ok(_) => {
+            eprintln!(
+                "[spotui] Mercury rootlist was empty; using profile fallback"
+            );
+            match profile_playlists(session).await {
+                Ok(playlists) => format_library_playlists(playlists),
+                Err(e) => format!("ERR {e}\nEND 0\n"),
+            }
+        }
+        Err(e) => {
+            eprintln!("[spotui] {e}; using profile fallback");
+            match profile_playlists(session).await {
+                Ok(playlists) => format_library_playlists(playlists),
+                Err(e) => format!("ERR {e}\nEND 0\n"),
+            }
+        }
+    }
+}
+
+async fn library_playlists(session: &Session) -> String {
+    match tokio::time::timeout(
+        Duration::from_secs(11),
+        library_playlists_inner(session),
+    )
+    .await
+    {
+        Ok(reply) => reply,
+        Err(_) => "ERR library request timed out\nEND 0\n".to_string(),
+    }
 }
 
 

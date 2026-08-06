@@ -55,6 +55,23 @@ provisioner runs after the stock player starts and never packages account or
 WiFi data. A failed extraction attempt removes its staging directory and
 retries without blocking the stock interface or activating partial files.
 
+### Upgrading an existing SpotUI installation
+
+The provisioner never overwrites a different existing runtime. If this player
+already has an older SpotUI release installed, enable ADB after the stock
+interface appears, keep SpotUI closed, and remove only these six old runtime
+targets before invoking the provisioner:
+
+```fish
+adb shell 'rm -f /usr/data/spotui-ui-poc /usr/data/spotui_daemon /usr/data/ld-musl-mipsel-sf.so.1 /usr/data/start_spotui.sh /usr/data/start_spotui.real.sh /usr/data/return_to_hiby.sh'
+adb shell '/etc/init.d/S99spotui-provision worker'
+```
+
+Wait for `/tmp/spotui-provision.log` to report `installed runtime
+spotui-0.1.0-beta.2+hmod-1.5` before tapping the SpotUI tile. Preserve any
+rollback copies on the computer first if you need to return to the older
+runtime. Do not remove stock HiBy files, credentials, cache data, or music.
+
 ## 3. Authorize Spotify privately
 
 1. In the stock interface, open Settings → About.

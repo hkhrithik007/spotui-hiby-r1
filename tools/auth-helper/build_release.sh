@@ -68,7 +68,7 @@ env \
 BINARY="$BUILD_ROOT/target/release/spotui-auth-helper"
 [ -f "$BINARY" ] || fail "Cargo did not create the expected helper binary"
 
-[ "$("$BINARY" --version)" = "spotui-auth-helper 0.1.0-beta.1 (librespot 0.8.0)" ] ||
+[ "$("$BINARY" --version)" = "spotui-auth-helper 0.1.0-beta.2 (librespot 0.8.0)" ] ||
     fail "helper version mismatch"
 file -L "$BINARY" | grep -q "ELF 64-bit LSB pie executable, x86-64" ||
     fail "helper is not the expected x86-64 Linux executable"

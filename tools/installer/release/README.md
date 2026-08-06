@@ -1,4 +1,4 @@
-# SpotUI 0.1.0-beta.1 tester bundle
+# SpotUI 0.1.0-beta.2 tester bundle
 
 This is an early tester package for the **HiBy R3 Pro II only**. It combines
 the device-tested SpotUI runtime with a firmware image derived from HiBy Mods

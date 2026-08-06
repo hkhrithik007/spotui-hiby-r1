@@ -1,7 +1,7 @@
 # Build and deploy SpotUI
 
 This document records the tested local cross-build workflow for the SpotUI
-`0.1.0-beta.1` interface and its librespot-based daemon on the HiBy R3 Pro II.
+`0.1.0-beta.2` interface and its librespot-based daemon on the HiBy R3 Pro II.
 
 The commands below assume:
 
@@ -286,7 +286,7 @@ After the device finishes booting:
 2. Confirm that the SpotUI launcher tile renders correctly.
 3. Launch SpotUI.
 4. Confirm that the interface starts.
-5. Open Diagnostics and confirm `Version 0.1.0-beta.1`.
+5. Open Diagnostics and confirm `Version 0.1.0-beta.2`.
 6. Load the track list.
 7. Start playback.
 8. Confirm that audio is produced through the expected output.

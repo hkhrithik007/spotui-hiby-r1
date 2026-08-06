@@ -17,7 +17,7 @@ body:
     attributes:
       label: SpotUI version
       description: Copy the version shown under Refresh Status in Diagnostics.
-      placeholder: 0.1.0-beta.1
+      placeholder: 0.1.0-beta.2
     validations:
       required: true
 
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Source tag or commit
       description: Provide the tag or full commit used to build this installation.
-      placeholder: v0.1.0-beta.1 or a commit hash
+      placeholder: v0.1.0-beta.2 or a commit hash
     validations:
       required: true
 

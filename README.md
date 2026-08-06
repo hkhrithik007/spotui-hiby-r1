@@ -2,7 +2,7 @@
 
 SpotUI for the HiBy R3 Pro II: an experimental standalone, tetherless streaming UI/client with on-device control.
 
-> Experimental tester beta `0.1.0-beta.1`. A manually installed, device-tested
+> Experimental tester beta `0.1.0-beta.2`. A manually installed, device-tested
 > HiBy R3 Pro II bundle may be published as a clearly marked GitHub prerelease;
 > it is not a one-click or production-ready package.
 
@@ -22,7 +22,7 @@ This project is not affiliated with, endorsed by, or supported by HiBy Music or 
 
 ## Status
 
-Developer beta `0.1.0-beta.1`, tested primarily on the HiBy R3 Pro II.
+Developer beta `0.1.0-beta.2`, tested primarily on the HiBy R3 Pro II.
 
 Current device-side features include:
 
@@ -126,6 +126,7 @@ This is an independent community research/modding project. It is provided withou
 
 ## Project documents
 
+- [0.1.0-beta.2 release notes](docs/releases/0.1.0-beta.2.md)
 - [0.1.0-beta.1 release notes](docs/releases/0.1.0-beta.1.md)
 - [Beta testing guide](docs/testing.md)
 - [Spotify credential onboarding](docs/credential-onboarding.md)

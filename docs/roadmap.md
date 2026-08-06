@@ -1,6 +1,6 @@
 # Roadmap
 
-SpotUI is currently a `0.1.0-beta.1` experimental tester beta for the HiBy R3
+SpotUI is currently a `0.1.0-beta.2` experimental tester beta for the HiBy R3
 Pro II. This roadmap is intentionally conservative: stability, documentation,
 and recovery come before convenience features.
 
@@ -37,7 +37,7 @@ and recovery come before convenience features.
 - Added elapsed startup timing and stage-specific Wi-Fi, Spotify, and library
   retry controls.
 - Added live WiFi, Spotify, audio, output, and queue diagnostics.
-- Added an on-device `0.1.0-beta.1` version identifier in Diagnostics.
+- Added an on-device version identifier in Diagnostics.
 - Added persistent 30-second, 60-second, 2-minute, 5-minute, and Never
   screen-sleep settings with safe touch and power-button wake while audio
   continues.
@@ -59,6 +59,11 @@ and recovery come before convenience features.
   behavior.
 - Added and device-tested private desktop OAuth onboarding with atomic ADB
   credential installation, strict permissions, and device-local rollback.
+- Expanded Library discovery beyond the previous eight-entry limit and added
+  complete playlist-name resolution.
+- Replaced the stock player's unreliable fork-based SpotUI tile callback with
+  a prestarted lightweight launch broker, verified during active and paused
+  stock playback.
 - Completed a full release-candidate regression covering all playback sources,
   rapid selection, automatic advancement, controls, search recovery,
   sleep/wake, headphone reconnection, UI-only restart, full reboot, settings

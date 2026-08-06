@@ -85,7 +85,7 @@ tools/installer/build_spotui_tester_upt.sh \
     --ui engine/ui/target/mipsel-unknown-linux-musl/release/spotui-ui-poc \
     --daemon /path/to/librespot/target/mipsel-unknown-linux-musl/release/examples/spotui_daemon \
     --loader /path/to/ld-musl-mipsel-sf.so.1 \
-    --output /path/to/r3proii-hmod-1.5-spotui-0.1.0-beta.1.upt \
+    --output /path/to/r3proii-hmod-1.5-spotui-0.1.0-beta.2.upt \
     --runtime-output /path/to/spotui-runtime.tar.xz
 ```
 
@@ -139,6 +139,30 @@ This record establishes the known-good maintainer build; it is not by itself
 authorization to publish the artifacts. Public testing still requires the
 credential onboarding, release packaging, notices, and recovery guidance
 described in this document.
+
+## SpotUI 0.1.0-beta.2 release-candidate validation
+
+The beta.2 pair adds complete Library playlist discovery and the prestarted
+stock-player launch broker. It passed reproducibility, privacy, installation,
+cold launch, Library, playback, active-stock handoff, paused-stock handoff,
+and normal-exit testing on the maintainer HiBy R3 Pro II on 2026-08-05:
+
+```text
+Firmware SHA-256: 4821a75376ad9f624b3dbd6392ead76cff41fa3b1594e00e1261a4894eb51f6c
+Firmware MD5:     7860dde40285936473090aced1a1e9b7
+Runtime SHA-256:  2fd5c1fddb9d1f18ecef9569c0f1bd5abfa4f43c02554ebe5ed09da1d3802944
+Rootfs SHA-256:   e34d001295ce57326c277e557a8724fb123d227503f70dcc3f542df54688e3b6
+Rootfs size:      37322752 bytes
+UI SHA-256:       3ca6c63bd953b8ee477ebd20b5d945e5259a39d5dfbb0d3713a2da93355067be
+Daemon SHA-256:   e368c922075c251f527a5dc2e6a9fc2b72b8f84f0f8647d7257dd9966aee0ed5
+Runtime profile:  XZ preset 4, CRC32, 4 MiB dictionary
+```
+
+The provisioner initially refused to overwrite the prior beta.1 runtime,
+preserving its safe no-overwrite behavior. After the prior runtime and stale
+rollback copies were archived privately and removed from the constrained
+device storage, the provisioner installed beta.2 from the SD card. All six
+runtime hashes, version metadata, permissions, and staging cleanup passed.
 
 ## Privacy-remapped release-candidate validation
 

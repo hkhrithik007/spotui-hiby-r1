@@ -59,7 +59,7 @@ tools/installer/build_tester_release_bundle.sh \
     --auth-helper /private/output/spotui-auth-helper \
     --private-marker ACCOUNT_IDENTIFIER \
     --private-marker DEVICE_SERIAL \
-    --output /private/output/spotui-0.1.0-beta.1-tester.tar.xz
+    --output /private/output/spotui-0.1.0-beta.2-tester.tar.xz
 ```
 
 The builder:

@@ -10,7 +10,7 @@ REAL_LAUNCHER="$REPO_ROOT/engine/launcher/start_spotui.sh"
 WRAPPER_LAUNCHER="$REPO_ROOT/engine/launcher/start_spotui_wrapper.sh"
 RETURN_LAUNCHER="$REPO_ROOT/engine/launcher/return_to_hiby.sh"
 
-SPOTUI_VERSION="0.1.0-beta.1"
+SPOTUI_VERSION="0.1.0-beta.2"
 HMOD_VERSION="1.5"
 RUNTIME_VERSION="spotui-${SPOTUI_VERSION}+hmod-${HMOD_VERSION}"
 

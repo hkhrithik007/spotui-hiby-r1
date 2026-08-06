@@ -9,7 +9,7 @@ use librespot_core::{
 };
 use librespot_oauth::OAuthClientBuilder;
 
-const VERSION: &str = "0.1.0-beta.1";
+const VERSION: &str = "0.1.0-beta.2";
 const DEFAULT_PORT: u16 = 5588;
 const CREDENTIALS_FILENAME: &str = "credentials.json";
 const SUCCESS_PAGE: &str = r#"<!doctype html>

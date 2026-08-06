@@ -21,7 +21,7 @@ DEVICE_CREDENTIALS = f"{DEVICE_CACHE_DIR}/credentials.json"
 DEVICE_STAGED = f"{DEVICE_CREDENTIALS}.new"
 DEVICE_PREVIOUS = f"{DEVICE_CREDENTIALS}.previous"
 DEVICE_FAILED = f"{DEVICE_CREDENTIALS}.failed"
-EXPECTED_AUTH_HELPER_PREFIX = "spotui-auth-helper 0.1.0-beta.1 (librespot 0.8.0)"
+EXPECTED_AUTH_HELPER_PREFIX = "spotui-auth-helper 0.1.0-beta.2 (librespot 0.8.0)"
 MAX_CREDENTIAL_BYTES = 128 * 1024
 
 

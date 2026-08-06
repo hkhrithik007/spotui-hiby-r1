@@ -6,12 +6,12 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." >/dev/null 2>&1 && pwd)"
 RELEASE_FILES="$SCRIPT_DIR/release"
 PRIVACY_AUDITOR="$SCRIPT_DIR/audit_release_privacy.py"
 
-VERSION="0.1.0-beta.1"
+VERSION="0.1.0-beta.2"
 BUNDLE_NAME="spotui-${VERSION}-r3proii-hmod1.5-tester-linux-x86_64"
-EXPECTED_FIRMWARE_SHA256="b4e78ab3eb7154f68ffc333a9fdd3770de5e16b1a65752a908812e3c7cfe6df0"
-EXPECTED_FIRMWARE_MD5="1a9afde2f694c11ae12ad9f9e7e70ca4"
-EXPECTED_RUNTIME_SHA256="f16ff95b69400ee360e27c860e690835e3bea8898742dd65b3b362048d0e8da8"
-EXPECTED_ROOTFS_SHA256="c5448b6716d71702ec810988572d24fba1eb3c319b22cbefd6903f8af6dd06f1"
+EXPECTED_FIRMWARE_SHA256="4821a75376ad9f624b3dbd6392ead76cff41fa3b1594e00e1261a4894eb51f6c"
+EXPECTED_FIRMWARE_MD5="7860dde40285936473090aced1a1e9b7"
+EXPECTED_RUNTIME_SHA256="2fd5c1fddb9d1f18ecef9569c0f1bd5abfa4f43c02554ebe5ed09da1d3802944"
+EXPECTED_ROOTFS_SHA256="e34d001295ce57326c277e557a8724fb123d227503f70dcc3f542df54688e3b6"
 EXPECTED_HMOD_BASE_SHA256="631af685977877f65288e371d49f3b2839681ee4ca4713234f498519e2ab33f2"
 EXPECTED_RUNTIME_LOADER_SHA256="ad3247d5c5a22ee0076c28c5e80b841ea24c604687a855997b9eb8aa77db4d37"
 EXPECTED_SHAIRPORT_SHA256="adbbdce5392b7fa9df356812447fe91b51f6837dc254be07ea5107c0364a9935"
@@ -160,7 +160,7 @@ fi
     fail "firmware MD5 mismatch"
 [ "$(hash_file "$RUNTIME")" = "$EXPECTED_RUNTIME_SHA256" ] ||
     fail "runtime archive is not the exact device-tested payload"
-[ "$("$AUTH_HELPER" --version)" = "spotui-auth-helper 0.1.0-beta.1 (librespot 0.8.0)" ] ||
+[ "$("$AUTH_HELPER" --version)" = "spotui-auth-helper 0.1.0-beta.2 (librespot 0.8.0)" ] ||
     fail "auth helper version mismatch"
 file -L "$AUTH_HELPER" | grep -q "ELF 64-bit LSB pie executable, x86-64" ||
     fail "auth helper is not the expected x86-64 Linux executable"

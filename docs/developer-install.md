@@ -1,6 +1,6 @@
 # Developer beta installation
 
-SpotUI `0.1.0-beta.1` is a **developer beta** for the HiBy R3 Pro II. It is
+SpotUI `0.1.0-beta.2` is a **developer beta** for the HiBy R3 Pro II. It is
 not a one-click installer, an end-user firmware package, or a supported
 consumer release.
 
@@ -25,7 +25,7 @@ It is not yet suitable for someone looking for a normal application installation
 The currently tested configuration is:
 
 - **Device:** HiBy R3 Pro II
-- **SpotUI version:** `0.1.0-beta.1`
+- **SpotUI version:** `0.1.0-beta.2`
 - **Target:** `mipsel-unknown-linux-musl`
 - **Host:** Linux development environment
 - **Playback engine:** librespot-based SpotUI daemon
@@ -212,7 +212,7 @@ During the first test:
 6. launch SpotUI;
 7. confirm that the UI starts;
 8. confirm that liked songs load;
-9. open Diagnostics and confirm `Version 0.1.0-beta.1`;
+9. open Diagnostics and confirm `Version 0.1.0-beta.2`;
 10. start playback;
 11. verify audio through the intended output;
 12. test pause and resume;

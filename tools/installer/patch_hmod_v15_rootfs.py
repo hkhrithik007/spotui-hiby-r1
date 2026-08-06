@@ -12,21 +12,23 @@ HMOD_V15_PLAYER_SHA256 = (
     "b4ca19e33dc79c250115f37b23c445c4eb7f42adf1a2198e26109ef2b79dcb09"
 )
 SPOTUI_PLAYER_SHA256 = (
-    "e0cfb5455eb121c04392373c2315956a3ce45a6fcfb61b52ad5e0e1c7640000b"
+    "e5b61d35726a07906eb489e3bdd0a989ec4b2857970d16b55b77fcb781fcb8b0"
 )
 HMOD_V15_PLAYER_SH_SHA256 = (
     "1ed03a80239032c6d363e8bdc9b6485dacac086e2bfe61403866a7c40fd25857"
 )
 SPOTUI_PLAYER_SH_SHA256 = (
-    "8cb194b4890fcfafef941e4019c53cc823cd4e8d94e4ece75077c3a861e220d5"
+    "68e4c4254dac0800746b9d76af0c19ec44a08a42f58964fe48e966dcdb22e6b9"
 )
 BACKUP_PLAYER_SHA256 = (
     "4df2dcd0b23c233da37a25853b8a1843dc93a218ff9ec251abd88466443a664d"
 )
 
-# These four replacements are the complete 69-byte SpotUI delta from the
-# published HMOD v1.5 player. Whole instruction/string regions are checked so
-# that the patch cannot be applied to a merely similar proprietary binary.
+# These four replacements are the complete SpotUI delta from the published
+# HMOD v1.5 player. The injected callback signals a prestarted lightweight
+# broker with unlink(2), avoiding system(3)'s unreliable fork from the large
+# proprietary player process. Whole instruction/string regions are checked so
+# the patch cannot be applied to a merely similar proprietary binary.
 PLAYER_PATCHES = (
     (
         1_391_968,
@@ -37,7 +39,7 @@ PLAYER_PATCHES = (
         ),
         bytes.fromhex(
             "e8 ff bd 27 14 00 bf af 94 00 04 3c 04 23 84 24 "
-            "24 9c 23 0c 00 00 00 00 14 00 bf 8f 00 00 02 24 "
+            "10 9c 23 0c 00 00 00 00 14 00 bf 8f 00 00 02 24 "
             "08 00 e0 03 18 00 bd 27"
         ),
     ),
@@ -49,7 +51,7 @@ PLAYER_PATCHES = (
     (
         5_448_452,
         bytes(28),
-        b"sh /usr/data/start_spotui.sh",
+        b"/tmp/spotui.launch" + bytes(10),
     ),
     (
         5_454_516,
@@ -59,7 +61,23 @@ PLAYER_PATCHES = (
 )
 
 PLAYER_SH_OLD = b"/usr/bin/hiby_player\nsleep 1\nreboot"
-PLAYER_SH_NEW = b"""/usr/bin/hiby_player
+PLAYER_SH_NEW = b"""SPOTUI_LAUNCH_MARKER=/tmp/spotui.launch
+: > "$SPOTUI_LAUNCH_MARKER"
+(
+    while [ -e "$SPOTUI_LAUNCH_MARKER" ]; do
+        sleep 0.25
+    done
+    while [ ! -x /usr/data/start_spotui.sh ]; do
+        sleep 0.25
+    done
+    exec sh /usr/data/start_spotui.sh
+) &
+SPOTUI_LAUNCH_BROKER_PID=$!
+
+/usr/bin/hiby_player
+kill "$SPOTUI_LAUNCH_BROKER_PID" 2>/dev/null || true
+wait "$SPOTUI_LAUNCH_BROKER_PID" 2>/dev/null || true
+rm -f "$SPOTUI_LAUNCH_MARKER"
 sleep 1
 # SpotUI GUI-launch guard:
 # If Qobuz was repurposed to start SpotUI, hiby_player may exit intentionally.

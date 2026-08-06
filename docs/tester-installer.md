@@ -39,7 +39,8 @@ credit, and warranty language when preparing any SpotUI release.
 The generated image:
 
 - preserves the verified HMOD v1.5 kernel and player modifications;
-- applies only the reviewed 69-byte SpotUI launcher delta to `hiby_player`;
+- applies only the reviewed 79-byte SpotUI launcher delta to `hiby_player`;
+- signals a prestarted lightweight broker without forking the stock player;
 - retains the original backup player;
 - prevents the stock wrapper from rebooting during an intentional SpotUI
   launcher handoff;

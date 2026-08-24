@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PROJECT="$HOME/hiby-r3proii-mod"
+PROJECT="/Users/hkhrithik/Documents/git/spotui-hiby-r3proii"
 TREE="$PROJECT/squashfs-root"
 BASE="$PROJECT/known-good/r3proii-spotui-qobuz-direct-working-audio.upt"
 OUTPUT="$PROJECT/r3proii-spotui-branded-icon-v5.upt"

@@ -294,6 +294,7 @@ enum PlaybackState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum StartupStage {
+    Wifi,
     Spotify,
     Library,
 }
@@ -301,6 +302,7 @@ enum StartupStage {
 impl StartupStage {
     fn label(self) -> &'static str {
         match self {
+            Self::Wifi => "Starting Wi-Fi",
             Self::Spotify => "Connecting to Spotify",
             Self::Library => "Loading Liked Songs",
         }
@@ -308,6 +310,7 @@ impl StartupStage {
 
     fn detail(self) -> &'static str {
         match self {
+            Self::Wifi => "Preparing the network connection",
             Self::Spotify => "Signing in and starting playback",
             Self::Library => "Fetching your saved tracks",
         }
@@ -315,6 +318,7 @@ impl StartupStage {
 
     fn progress_width(self) -> u32 {
         match self {
+            Self::Wifi => 120,
             Self::Spotify => 240,
             Self::Library => 360,
         }
@@ -322,6 +326,7 @@ impl StartupStage {
 
     fn retry_label(self) -> &'static str {
         match self {
+            Self::Wifi => "Retry Wi-Fi",
             Self::Spotify => "Retry Spotify",
             Self::Library => "Retry Library",
         }
@@ -334,8 +339,8 @@ fn wifi_has_default_route() -> bool {
         .map(|routes| {
             routes.lines().skip(1).any(|line| {
                 let mut fields = line.split_whitespace();
-                fields.next();
-                fields.next() == Some("00000000")
+                fields.next() == Some("wlan0")
+                    && fields.next() == Some("00000000")
             })
         })
         .unwrap_or(false)
@@ -372,9 +377,34 @@ fn terminate_process_with_arg(argument: &str) -> bool {
 
 fn request_startup_recovery(stage: StartupStage) {
     match stage {
-        StartupStage::Spotify | StartupStage::Library => {
-            eprintln!("[poc] startup retry requested -> {:?}", stage);
+        StartupStage::Wifi => {
+            let _ = std::process::Command::new("killall")
+                .arg("udhcpc")
+                .status();
+            let _ = std::process::Command::new("wpa_cli")
+                .args(["-i", "wlan0", "reassociate"])
+                .status();
+            let _ = std::process::Command::new("udhcpc")
+                .args([
+                    "-i",
+                    "wlan0",
+                    "-b",
+                    "-n",
+                    "-t",
+                    "5",
+                    "-T",
+                    "2",
+                    "-x",
+                    "hostname:HiBy-R3PROII",
+                ])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn();
         }
+        StartupStage::Spotify => {
+            terminate_process_with_arg("/usr/data/spotui_daemon");
+        }
+        StartupStage::Library => {}
     }
 }
 
@@ -3588,11 +3618,10 @@ fn main() {
     let mut tracks_loaded = !items.is_empty();
     let mut startup_stage = if tracks_loaded {
         None
+    } else if wifi_has_default_route() {
+        Some(StartupStage::Spotify)
     } else {
-        match daemon_playback_state() {
-            Some(_) => Some(StartupStage::Library),
-            None => Some(StartupStage::Spotify),
-        }
+        Some(StartupStage::Wifi)
     };
     if tracks_loaded {
         eprintln!("[poc] loaded {} liked tracks", items.len());
@@ -5201,9 +5230,12 @@ BRIGHTNESS_LABELS[brightness_idx]
         if !tracks_loaded && last_liked_retry.elapsed().as_millis() >= 2000 {
             last_liked_retry = std::time::Instant::now();
             dirty = true;
-            let updated_stage = match daemon_playback_state() {
-                Some(_) => StartupStage::Library,
-                None => StartupStage::Spotify,
+            let updated_stage = if !wifi_has_default_route() {
+                StartupStage::Wifi
+            } else if daemon_playback_state().is_some() {
+                StartupStage::Library
+            } else {
+                StartupStage::Spotify
             };
 
             if startup_stage != Some(updated_stage) {
